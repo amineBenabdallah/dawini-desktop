@@ -1,0 +1,101 @@
+@if (loading()) {
+  <app-loading-spinner />
+} @else {
+
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <button class="cm-btn-secondary" (click)="cancel()" style="padding: .45rem .75rem;">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <h5 class="mb-0 fw-semibold">{{ isEdit() ? 'Modifier l\'ordonnance' : 'Nouvelle ordonnance' }}</h5>
+  </div>
+
+  <!-- Consultation picker (create only) -->
+  @if (!isEdit()) {
+    <div class="cm-card mb-3">
+      <div class="cm-form-section-title"><i class="bi bi-clipboard2-check"></i> Consultation</div>
+      <div class="cm-form-group">
+        <label class="cm-form-label">Consultation <span class="required">*</span></label>
+        <div class="cm-input-icon-wrapper">
+          <i class="bi bi-clipboard2-check"></i>
+          @if (prefilledConsultationId()) {
+            <!-- Pre-filled from consultation page — show the selected one -->
+            <select class="cm-input w-100" [(ngModel)]="consultationId">
+              @for (c of consultations(); track c.id) {
+                <option [value]="c.id">{{ formatDate(c.dateConsultation) }} — {{ c.patient?.firstName }} {{ c.patient?.lastName }} — {{ c.motif }}</option>
+              }
+            </select>
+          } @else {
+            <select class="cm-input w-100" [(ngModel)]="consultationId">
+              <option value="">-- Sélectionner une consultation finalisée --</option>
+              @for (c of consultations(); track c.id) {
+                <option [value]="c.id">{{ formatDate(c.dateConsultation) }} — {{ c.patient?.firstName }} {{ c.patient?.lastName }} — {{ c.motif }}</option>
+              }
+            </select>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Medication lines -->
+  <div class="cm-card mb-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div class="cm-form-section-title mb-0"><i class="bi bi-capsule"></i> Médicaments</div>
+      <button class="cm-btn-secondary" (click)="addLigne()" style="padding: .4rem .85rem; font-size: .82rem;">
+        <i class="bi bi-plus-lg"></i> Ajouter
+      </button>
+    </div>
+
+    @for (ligne of lignes; track $index; let i = $index) {
+      <div class="cm-med-card">
+        <div class="cm-med-header">
+          <span class="cm-med-number">Médicament {{ i + 1 }}</span>
+          @if (lignes.length > 1) {
+            <button class="btn btn-sm btn-outline-danger border-0" (click)="removeLigne(i)" title="Retirer">
+              <i class="bi bi-trash"></i>
+            </button>
+          }
+        </div>
+
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="cm-form-label">Médicament <span class="required">*</span></label>
+            <input type="text" class="cm-input w-100" [(ngModel)]="ligne.medicament"
+                   placeholder="Nom du médicament" maxlength="200" />
+          </div>
+          <div class="col-md-6">
+            <label class="cm-form-label">Dosage <span class="required">*</span></label>
+            <input type="text" class="cm-input w-100" [(ngModel)]="ligne.dosage"
+                   placeholder="ex: 500mg" maxlength="100" />
+          </div>
+          <div class="col-md-6">
+            <label class="cm-form-label">Fréquence <span class="required">*</span></label>
+            <input type="text" class="cm-input w-100" [(ngModel)]="ligne.frequence"
+                   placeholder="ex: 3 fois par jour" maxlength="200" />
+          </div>
+          <div class="col-md-6">
+            <label class="cm-form-label">Durée <span class="required">*</span></label>
+            <input type="text" class="cm-input w-100" [(ngModel)]="ligne.duree"
+                   placeholder="ex: 7 jours" maxlength="100" />
+          </div>
+          <div class="col-12">
+            <label class="cm-form-label">Instructions</label>
+            <input type="text" class="cm-input w-100" [(ngModel)]="ligne.instructions"
+                   placeholder="Instructions complémentaires (optionnel)" maxlength="500" />
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Actions -->
+  <div class="cm-form-actions">
+    <button class="cm-btn-secondary" (click)="cancel()">Annuler</button>
+    <button class="cm-btn-primary" (click)="save()" [disabled]="!canSave || saving()">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm"></span>
+      }
+      {{ isEdit() ? 'Enregistrer' : 'Créer l\'ordonnance' }}
+    </button>
+  </div>
+}

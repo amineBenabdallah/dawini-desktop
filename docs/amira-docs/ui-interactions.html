@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Amira — UI Interactions</title>
+<style>
+  :root{--bg:#f8fafc;--surface:#fff;--text:#0f172a;--muted:#64748b;--primary:#2563eb;--accent:#7c3aed;--success:#059669;--warning:#b45309;--danger:#dc2626;--border:#e2e8f0;--radius:14px;--font:'Inter','Segoe UI',system-ui,sans-serif}
+  *{box-sizing:border-box;margin:0}
+  body{font-family:var(--font);background:var(--bg);color:var(--text)}
+  .hero{background:linear-gradient(135deg,#7c3aed,#ec4899);color:white;padding:48px 40px;text-align:center}
+  .hero h1{font-size:32px;font-weight:800;margin-bottom:8px}
+  .hero p{font-size:16px;opacity:.85}
+  .hero .badge{display:inline-block;background:rgba(255,255,255,.15);padding:4px 14px;border-radius:20px;font-size:12px;margin-top:12px}
+  .container{max-width:1100px;margin:0 auto;padding:40px 24px}
+  h2{font-size:22px;font-weight:700;margin:40px 0 16px;display:flex;align-items:center;gap:10px}
+  h2 .icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  h3{font-size:16px;font-weight:600;margin:24px 0 12px}
+  p,li{font-size:14px;line-height:1.7;color:var(--muted)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .divider{height:1px;background:var(--border);margin:40px 0}
+  nav{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 24px;z-index:100;display:flex;gap:20px;align-items:center}
+  nav a{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 0;border-bottom:2px solid transparent}
+  nav a:hover{color:var(--text)}
+  nav a.active{color:var(--primary);border-bottom-color:var(--primary)}
+  nav .logo{font-weight:700;color:var(--text);font-size:14px;margin-right:16px}
+
+  /* ── Mockup styles ── */
+  .mockup{background:#f1f5f9;border-radius:16px;padding:24px;margin:16px 0;position:relative;overflow:hidden;border:1px solid var(--border)}
+  .mockup-label{position:absolute;top:8px;right:12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);background:white;padding:2px 8px;border-radius:10px}
+  .mock-input{background:white;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text);width:100%;display:flex;align-items:center;gap:8px}
+  .mock-input i{color:var(--muted);font-size:14px}
+  .mock-label{font-size:12px;font-weight:600;color:#475569;margin-bottom:6px}
+  .mock-field{margin-bottom:16px}
+  .mock-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:768px){.mock-grid{grid-template-columns:1fr}}
+
+  /* ── Whisper ── */
+  .whisper{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:4px;animation:whisperIn .4s ease .5s both;padding:3px 8px;border-radius:6px;background:rgba(37,99,235,.04)}
+  .whisper.danger{color:var(--danger);background:rgba(239,68,68,.04)}
+  .whisper.warning{color:var(--warning);background:rgba(245,158,11,.04)}
+  .whisper i{font-size:11px}
+  @keyframes whisperIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ── Suggest card ── */
+  .suggest-card{background:white;border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:0 14px 14px 0;padding:16px 20px;box-shadow:0 8px 30px rgba(0,0,0,.08);max-width:340px;position:relative;animation:suggestIn .35s cubic-bezier(.34,1.56,.64,1)}
+  .suggest-card.danger{border-left-color:var(--danger)}
+  .suggest-card.warning{border-left-color:var(--warning)}
+  .suggest-card .sc-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .suggest-card .sc-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:white;font-size:12px}
+  .suggest-card .sc-name{font-size:12px;font-weight:600;color:var(--text)}
+  .suggest-card .sc-body{font-size:13px;color:#334155;line-height:1.6;margin-bottom:12px}
+  .suggest-card .sc-body strong{color:var(--text)}
+  .suggest-card .sc-actions{display:flex;gap:6px}
+  .suggest-card .sc-btn{padding:5px 14px;border-radius:8px;font-size:12px;font-weight:500;border:none;cursor:pointer;transition:all .15s}
+  .suggest-card .sc-btn-primary{background:var(--primary);color:white}
+  .suggest-card .sc-btn-ghost{background:#f1f5f9;color:#475569}
+  .suggest-card .sc-source{font-size:11px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:4px}
+  @keyframes suggestIn{from{opacity:0;transform:translateX(20px) scale(.95)}to{opacity:1;transform:translateX(0) scale(1)}}
+
+  /* ── Talk panel ── */
+  .talk-panel{background:rgba(255,255,255,.97);border-left:1px solid var(--border);width:360px;display:flex;flex-direction:column;height:480px;border-radius:14px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+  .talk-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .talk-header .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:white;font-size:14px}
+  .talk-header .info{flex:1}
+  .talk-header .name{font-size:14px;font-weight:600}
+  .talk-header .status{font-size:11px;color:var(--success)}
+  .talk-ctx{padding:10px 18px;background:#f8fafc;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)}
+  .talk-messages{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+  .msg{max-width:85%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6}
+  .msg-doctor{background:#eff6ff;color:#1e40af;align-self:flex-end;border-bottom-right-radius:4px}
+  .msg-amira{background:white;border:1px solid var(--border);color:#334155;align-self:flex-start;border-bottom-left-radius:4px}
+  .msg-source{font-size:10px;color:var(--muted);margin-top:4px;padding:2px 8px;background:#f1f5f9;border-radius:10px;display:inline-block}
+  .talk-quick{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap}
+  .talk-quick button{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:white;font-size:11px;color:var(--muted);cursor:pointer;transition:all .12s}
+  .talk-quick button:hover{background:var(--primary);color:white;border-color:var(--primary)}
+  .talk-input{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px}
+  .talk-input input{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;font-size:13px;outline:none}
+  .talk-input input:focus{border-color:var(--primary)}
+  .talk-input button{background:var(--primary);color:white;border:none;border-radius:10px;padding:8px 14px;font-size:13px;cursor:pointer}
+
+  /* ── FAB ── */
+  .fab{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;border:none;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,.3);position:relative;transition:all .2s}
+  .fab:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(37,99,235,.4)}
+  .fab .badge-dot{position:absolute;top:2px;right:2px;width:10px;height:10px;background:var(--danger);border-radius:50%;border:2px solid white}
+
+  .grid-side{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
+  @media(max-width:900px){.grid-side{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">Dr. Amira Docs</span>
+  <a href="architecture.html">Architecture</a>
+  <a href="flow.html">Data Flow</a>
+  <a href="decisions.html">Decisions</a>
+  <a href="ui-interactions.html" class="active">UI Interactions</a>
+</nav>
+
+<div class="hero">
+  <h1>UI Interactions</h1>
+  <p>How Dr. Amira appears on each screen — Whisper, Suggest, Talk</p>
+  <div class="badge">3 modes &middot; context-aware &middot; non-intrusive</div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#ecfdf5;color:#059669">1</span> Mode: Whisper — Inline Hints</h2>
+<p>Tiny, subtle, appears inside the form. Doctor sees it without looking away from their work.</p>
+
+<div class="mockup">
+  <span class="mockup-label">Consultation Form</span>
+  <div class="mock-grid">
+    <div class="mock-field">
+      <div class="mock-label">Tension art&eacute;rielle</div>
+      <div class="mock-input">16/10 mmHg</div>
+      <div class="whisper danger"><i>&#x26A0;</i> HTA grade 2 &mdash; consid&eacute;rer ajustement AHT</div>
+    </div>
+    <div class="mock-field">
+      <div class="mock-label">Poids</div>
+      <div class="mock-input">94 kg</div>
+      <div class="whisper warning"><i>&#x2197;</i> Tendance: 89 &rarr; 92 &rarr; 94 kg</div>
+    </div>
+    <div class="mock-field">
+      <div class="mock-label">Temp&eacute;rature</div>
+      <div class="mock-input">37.2 &deg;C</div>
+    </div>
+  </div>
+  <div style="margin-top:16px">
+    <div class="mock-label">Motif</div>
+    <div class="mock-input">C&eacute;phal&eacute;es depuis 3 jours</div>
+    <div class="whisper"><i>&#x1F4A1;</i> C&eacute;phal&eacute;es + HTA &rarr; &eacute;voquer c&eacute;phal&eacute;es secondaires &agrave; l'HTA</div>
+  </div>
+  <div style="margin-top:16px">
+    <div class="mock-label">Diagnostic</div>
+    <div class="mock-input" style="color:#94a3b8">Commencer &agrave; taper...</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Whisper Rules</h3>
+  <ul style="padding-left:20px">
+    <li>Appears <strong>500ms after</strong> the doctor finishes typing (debounced)</li>
+    <li>Font: 12px, muted color, subtle background tint</li>
+    <li>Dismissible with &times; (remembers per-session)</li>
+    <li>Never blocks input — always below the field</li>
+    <li>Maximum 1 whisper per field</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#eff6ff;color:#2563eb">2</span> Mode: Suggest — Action Cards</h2>
+<p>Slides up when Amira has something important. Like a colleague tapping your shoulder.</p>
+
+<div style="display:flex;flex-direction:column;gap:16px;align-items:flex-end">
+
+  <div class="suggest-card danger">
+    <div class="sc-header">
+      <div class="sc-avatar">A</div>
+      <div class="sc-name">Dr. Amira</div>
+    </div>
+    <div class="sc-body">
+      <strong>&#x1F534; Interaction grave</strong><br>
+      Ibuprof&egrave;ne + M&eacute;thotrexate<br>
+      Risque de toxicit&eacute; m&eacute;dullaire et r&eacute;nale.<br>
+      Alternative: <strong>Parac&eacute;tamol 1g</strong>
+    </div>
+    <div class="sc-actions">
+      <button class="sc-btn sc-btn-primary">Remplacer</button>
+      <button class="sc-btn sc-btn-ghost">Garder</button>
+    </div>
+    <div class="sc-source">&#x1F4C4; Dorosz 2025, p.892</div>
+  </div>
+
+  <div class="suggest-card warning">
+    <div class="sc-header">
+      <div class="sc-avatar">A</div>
+      <div class="sc-name">Dr. Amira</div>
+    </div>
+    <div class="sc-body">
+      <strong>&#x26A0; Patient d&eacute;j&agrave; sous ce m&eacute;dicament</strong><br>
+      Metformine 1000mg x2/j d&eacute;j&agrave; prescrite (ordonnance du 12/02/2026).<br>
+      Doublon d&eacute;tect&eacute;.
+    </div>
+    <div class="sc-actions">
+      <button class="sc-btn sc-btn-primary">Modifier la dose</button>
+      <button class="sc-btn sc-btn-ghost">Ignorer</button>
+    </div>
+  </div>
+
+  <div class="suggest-card">
+    <div class="sc-header">
+      <div class="sc-avatar">A</div>
+      <div class="sc-name">Dr. Amira</div>
+    </div>
+    <div class="sc-body">
+      <strong>Plan de traitement sugg&eacute;r&eacute;</strong><br>
+      &#x2022; Amlodipine 5mg &rarr; 10mg/j<br>
+      &#x2022; Parac&eacute;tamol 1g si c&eacute;phal&eacute;es (max 4g/j)<br>
+      &#x2022; Contr&ocirc;le TA dans 2 semaines
+    </div>
+    <div class="sc-actions">
+      <button class="sc-btn sc-btn-primary">Appliquer</button>
+      <button class="sc-btn sc-btn-ghost">Modifier</button>
+      <button class="sc-btn sc-btn-ghost">Ignorer</button>
+    </div>
+    <div class="sc-source">&#x1F4C4; Guide HTA MSPRH, p.18</div>
+  </div>
+
+</div>
+
+<div class="card">
+  <h3>Suggest Card Rules</h3>
+  <ul style="padding-left:20px">
+    <li>Position: <strong>fixed bottom-right</strong>, above the FAB</li>
+    <li>Animation: slide in from right with spring bounce</li>
+    <li>Auto-dismiss after <strong>15 seconds</strong> if not interacted with</li>
+    <li>Maximum <strong>2 cards</strong> stacked at once</li>
+    <li>Red left-border for grave alerts, amber for moderate, blue for suggestions</li>
+    <li>Action buttons: primary action + ghost dismiss</li>
+    <li>Source badge at bottom — always show where the data came from</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#f5f3ff;color:#7c3aed">3</span> Mode: Talk — Conversation Panel</h2>
+<p>Opens when doctor clicks the FAB or presses <code>Ctrl+Space</code>. Full conversation with context.</p>
+
+<div class="grid-side">
+  <div class="mockup" style="min-height:480px">
+    <span class="mockup-label">Main App Content</span>
+    <div style="padding:40px;text-align:center;color:var(--muted)">
+      <p style="font-size:16px">(Current screen — consultation, ordonnance, etc.)</p>
+      <p>Panel slides in from the right,<br>pushes content or overlays.</p>
+    </div>
+  </div>
+
+  <div class="talk-panel">
+    <div class="talk-header">
+      <div class="avatar">A</div>
+      <div class="info">
+        <div class="name">Dr. Amira</div>
+        <div class="status">&#x25CF; En ligne</div>
+      </div>
+      <span style="font-size:18px;color:var(--muted);cursor:pointer">&times;</span>
+    </div>
+
+    <div class="talk-ctx">
+      &#x1F4CB; Ahmed Benali, 52 ans &mdash; Consultation en cours
+    </div>
+
+    <div class="talk-messages">
+      <div class="msg msg-doctor">
+        Quelle CAT devant cette HTA r&eacute;sistante?
+      </div>
+      <div class="msg msg-amira">
+        D'apr&egrave;s ton Guide HTA MSPRH (p.23):<br><br>
+        &#x2022; V&eacute;rifier l'observance th&eacute;rapeutique<br>
+        &#x2022; Rechercher une cause secondaire (st&eacute;nose art&egrave;re r&eacute;nale, pheo...)<br>
+        &#x2022; Si TA non contr&ocirc;l&eacute;e sous bith&eacute;rapie &rarr; trith&eacute;rapie: IEC + ICa + diur&eacute;tique<br><br>
+        Patient d&eacute;j&agrave; sous Amlodipine 5mg. Suggestions:<br>
+        &#x2022; &uarr; Amlodipine 10mg<br>
+        &#x2022; + P&eacute;rindopril 5mg
+        <div class="msg-source">Guide HTA MSPRH, p.23</div>
+      </div>
+      <div class="msg msg-doctor">
+        Et pour le bilan?
+      </div>
+      <div class="msg msg-amira">
+        Bilan HTA r&eacute;sistante &agrave; prescrire:<br><br>
+        &#x2022; Ionogramme sanguin (K+, Na+)<br>
+        &#x2022; Cr&eacute;atinine + DFG<br>
+        &#x2022; Glyc&eacute;mie &agrave; jeun (d&eacute;j&agrave; diab&eacute;tique)<br>
+        &#x2022; Microalbuminurie<br>
+        &#x2022; ECG 12 d&eacute;rivations<br>
+        &#x2022; &Eacute;cho-doppler des art&egrave;res r&eacute;nales
+        <div class="msg-source">Guide HTA MSPRH, p.25</div>
+      </div>
+    </div>
+
+    <div class="talk-quick">
+      <button>Sugg&eacute;rer diagnostic</button>
+      <button>R&eacute;diger ordonnance</button>
+      <button>R&eacute;diger certificat</button>
+      <button>R&eacute;sumer dossier</button>
+    </div>
+
+    <div class="talk-input">
+      <input type="text" placeholder="Demander &agrave; Amira...">
+      <button>&#x27A4;</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Talk Panel Rules</h3>
+  <ul style="padding-left:20px">
+    <li><strong>Trigger:</strong> FAB click or <code>Ctrl+Space</code></li>
+    <li><strong>Width:</strong> 380px, slides from right</li>
+    <li><strong>Context bar:</strong> shows current patient + screen</li>
+    <li><strong>Quick actions:</strong> pre-built buttons for common tasks</li>
+    <li><strong>Streaming:</strong> tokens appear progressively (SSE)</li>
+    <li><strong>Source badges:</strong> every response cites the document</li>
+    <li><strong>Memory:</strong> conversation persists during the session, resets on patient change</li>
+    <li><strong>Keyboard:</strong> <code>Enter</code> to send, <code>Escape</code> to close</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#fef2f2;color:#dc2626">4</span> The Floating Action Button (FAB)</h2>
+
+<div style="display:flex;gap:40px;align-items:center;justify-content:center;padding:32px">
+  <div style="text-align:center">
+    <div class="fab">A</div>
+    <p style="margin-top:8px;font-size:12px"><strong>Idle</strong><br>Subtle, always visible</p>
+  </div>
+  <div style="text-align:center">
+    <div class="fab" style="animation:pulse 2s ease-in-out infinite;box-shadow:0 0 0 8px rgba(37,99,235,.1),0 4px 14px rgba(37,99,235,.3)">A</div>
+    <p style="margin-top:8px;font-size:12px"><strong>Thinking</strong><br>Pulse glow animation</p>
+    <style>@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(37,99,235,.08),0 4px 14px rgba(37,99,235,.3)}50%{box-shadow:0 0 0 10px rgba(37,99,235,.04),0 4px 14px rgba(37,99,235,.3)}}</style>
+  </div>
+  <div style="text-align:center">
+    <div class="fab">A<span class="badge-dot"></span></div>
+    <p style="margin-top:8px;font-size:12px"><strong>Has suggestion</strong><br>Red badge dot</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3>FAB Behavior</h3>
+  <ul style="padding-left:20px">
+    <li>Position: <strong>fixed, bottom-right, 20px from edges</strong></li>
+    <li>Size: 48x48px, gradient blue &rarr; purple</li>
+    <li>Letter "A" for Amira (or custom SVG icon)</li>
+    <li>Hover: scale 1.05 + stronger shadow</li>
+    <li>Click: toggles Talk panel</li>
+    <li>Badge dot: appears when Amira has a pending suggestion</li>
+    <li>Pulse: when LLM is generating a response</li>
+    <li>Tooltip on hover: "Dr. Amira &mdash; Ctrl+Space"</li>
+    <li><strong>Hidden on:</strong> login, setup, print routes</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#fffbeb;color:#b45309">5</span> First-Time Welcome</h2>
+
+<div class="mockup" style="max-width:460px;margin:16px auto;text-align:center;padding:40px">
+  <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;color:white;font-size:28px">A</div>
+  <h3 style="font-size:20px;margin-bottom:4px;color:var(--text)">Bonjour, je suis Amira</h3>
+  <p style="margin-bottom:20px">Votre consœur num&eacute;rique. Je travaille uniquement &agrave; partir de vos r&eacute;f&eacute;rences m&eacute;dicales.</p>
+  <p style="font-size:13px;margin-bottom:24px;color:#475569">Ajoutez vos PDFs (Dorosz, Vidal, guides MSPRH...) dans la biblioth&egrave;que pour que je puisse vous assister pendant vos consultations.</p>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button style="padding:10px 24px;border-radius:10px;background:var(--primary);color:white;border:none;font-size:14px;font-weight:500;cursor:pointer">Ouvrir la biblioth&egrave;que</button>
+    <button style="padding:10px 24px;border-radius:10px;background:#f1f5f9;color:#475569;border:none;font-size:14px;font-weight:500;cursor:pointer">Plus tard</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#ecfdf5;color:#059669">6</span> No References Found State</h2>
+
+<div style="max-width:340px;margin:16px 0">
+  <div class="suggest-card" style="border-left-color:var(--warning)">
+    <div class="sc-header">
+      <div class="sc-avatar">A</div>
+      <div class="sc-name">Dr. Amira</div>
+    </div>
+    <div class="sc-body">
+      Je n'ai pas trouv&eacute; d'information sur le <strong>Sacubitril</strong> dans mes r&eacute;f&eacute;rences.<br><br>
+      Pour que je puisse t'aider, ajoute le document correspondant dans ta biblioth&egrave;que.
+    </div>
+    <div class="sc-actions">
+      <button class="sc-btn sc-btn-primary">Ouvrir la biblioth&egrave;que</button>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+<p style="text-align:center;font-size:12px;color:var(--muted)">Dr. Amira UI Interactions — Dawini Desktop — April 2026</p>
+
+</div>
+</body>
+</html>

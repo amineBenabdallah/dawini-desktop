@@ -1,0 +1,8 @@
+// ── Bootstrap 5 ──────────────────────────────────────────────
+@use 'bootstrap/scss/bootstrap' as *;
+
+// ── Bootstrap Icons ───────────────────────────────────────────
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+// Note: desktop-theme.scss is loaded separately via angular.json styles array
+// to allow easy toggling and keep base Bootstrap clean.

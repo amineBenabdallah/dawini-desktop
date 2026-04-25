@@ -1,0 +1,284 @@
+<app-page-header
+  title="Équipe"
+  subtitle="Gestion des employés"
+  actionLabel="Inviter un employé"
+  (action)="openInviteModal()"
+/>
+
+<div class="cm-card">
+  @if (loading()) { <app-loading-spinner /> }
+  @else {
+
+    <!-- Desktop table (md+) -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>E-mail</th>
+            <th>Rôle</th>
+            <th>Statut</th>
+            <th>Horaires</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of employees(); track e.id) {
+            <tr>
+              <td class="fw-medium">{{ e.firstName }} {{ e.lastName }}</td>
+              <td class="text-muted small">{{ e.email }}</td>
+
+              <!-- Role — inline select, disabled for current user (no self-demotion) -->
+              <td>
+                @if (e.id === currentUserId) {
+                  <span class="badge bg-light text-dark border rounded-pill" style="font-size:.75rem">
+                    {{ roleLabels[e.role] ?? e.role }}
+                  </span>
+                } @else {
+                  <select
+                    class="form-select form-select-sm"
+                    style="min-width:120px"
+                    [ngModel]="e.role"
+                    (ngModelChange)="changeRole(e, $event)"
+                    [name]="'role-' + e.id"
+                  >
+                    @for (r of inviteRoles; track r.value) {
+                      <option [value]="r.value">{{ r.label }}</option>
+                    }
+                  </select>
+                }
+              </td>
+
+              <!-- Status -->
+              <td>
+                @if (e.isActive) {
+                  <span class="badge bg-success bg-opacity-10 text-success rounded-pill" style="font-size:.75rem">Actif</span>
+                } @else {
+                  <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill" style="font-size:.75rem">Inactif</span>
+                }
+              </td>
+
+              <!-- Shifts summary -->
+              <td class="text-muted small">
+                @if (e.shifts && e.shifts.length > 0) {
+                  {{ e.shifts.length }} jour(s)
+                } @else {
+                  <span class="text-muted opacity-50">—</span>
+                }
+              </td>
+
+              <!-- Actions -->
+              <td class="text-end d-flex gap-1 justify-content-end">
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  (click)="openShiftsModal(e)"
+                  title="Gérer les horaires"
+                >
+                  <i class="bi bi-calendar-week"></i>
+                </button>
+                <button
+                  class="btn btn-sm"
+                  [class.btn-outline-secondary]="e.isActive"
+                  [class.btn-outline-success]="!e.isActive"
+                  (click)="toggleActive(e)"
+                  [title]="e.isActive ? 'Désactiver' : 'Réactiver'"
+                >
+                  <i class="bi" [class.bi-person-dash]="e.isActive" [class.bi-person-check]="!e.isActive"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="text-center text-muted py-5">
+              <i class="bi bi-person-badge fs-2 d-block mb-2 opacity-25"></i> Aucun employé
+            </td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile card list (xs/sm) -->
+    <ul class="list-unstyled mb-0 d-md-none">
+      @for (e of employees(); track e.id) {
+        <li class="emp-card">
+          <div class="emp-card__avatar">{{ ((e.firstName?.[0] ?? '') + (e.lastName?.[0] ?? '')) | uppercase }}</div>
+          <div class="emp-card__body">
+            <div class="emp-card__name">{{ e.firstName }} {{ e.lastName }}</div>
+            <div class="emp-card__meta">
+              <span class="badge bg-light text-dark border rounded-pill" style="font-size:.7rem">{{ roleLabels[e.role] ?? e.role }}</span>
+              @if (e.isActive) {
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill ms-1" style="font-size:.7rem">Actif</span>
+              } @else {
+                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill ms-1" style="font-size:.7rem">Inactif</span>
+              }
+            </div>
+          </div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-sm btn-outline-secondary" (click)="openShiftsModal(e)" title="Horaires">
+              <i class="bi bi-calendar-week"></i>
+            </button>
+            <button class="btn btn-sm"
+                    [class.btn-outline-secondary]="e.isActive"
+                    [class.btn-outline-success]="!e.isActive"
+                    (click)="toggleActive(e)">
+              <i class="bi" [class.bi-person-dash]="e.isActive" [class.bi-person-check]="!e.isActive"></i>
+            </button>
+          </div>
+        </li>
+      } @empty {
+        <li class="text-center text-muted py-5">
+          <i class="bi bi-person-badge fs-2 d-block mb-2 opacity-25"></i> Aucun employé
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<style>
+  .emp-card {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .65rem 1rem; border-bottom: 1px solid #f1f5f9; min-height: 56px;
+  }
+  .emp-card:last-child { border-bottom: none; }
+  .emp-card__avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: #e0e7ff; color: #4338ca;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 800;
+  }
+  .emp-card__body { flex: 1 1 0; min-width: 0; }
+  .emp-card__name { font-size: .88rem; font-weight: 600; color: #0f172a; }
+  .emp-card__meta { margin-top: .15rem; }
+</style>
+
+<!-- ── Invite modal ──────────────────────────────────────────────────────────── -->
+@if (showModal()) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.35)" (click)="closeModal()">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow-sm rounded-3">
+        <div class="modal-header border-0 pb-0">
+          <h6 class="modal-title fw-semibold">Inviter un employé</h6>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+
+        @if (sentOk()) {
+          <div class="modal-body text-center py-4">
+            <i class="bi bi-person-check fs-1 text-success d-block mb-2"></i>
+            <p class="mb-1">Compte créé pour <strong>{{ inviteEmail }}</strong></p>
+            <p class="text-muted small mb-3">Partagez ce mot de passe temporaire avec l'employé. Il pourra le modifier après connexion.</p>
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+              <code class="fs-5 px-3 py-2 rounded bg-light border fw-bold text-dark">{{ tempPassword() }}</code>
+              <button class="btn btn-sm btn-outline-secondary" title="Copier" (click)="copyPassword()">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+            <button class="btn btn-sm btn-outline-primary w-100" (click)="sendByEmail()">
+              <i class="bi bi-envelope me-1"></i>Envoyer par e-mail
+            </button>
+          </div>
+          <div class="modal-footer border-0 pt-0">
+            <button class="btn btn-sm btn-secondary w-100" (click)="closeModal()">Fermer</button>
+          </div>
+        } @else {
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label small">Adresse e-mail</label>
+              <input
+                type="email"
+                class="form-control form-control-sm"
+                [(ngModel)]="inviteEmail"
+                placeholder="employe@cabinet.dz"
+                (keyup.enter)="sendInvite()"
+              >
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Rôle</label>
+              <select class="form-select form-select-sm" [(ngModel)]="inviteRole">
+                @for (r of inviteRoles; track r.value) {
+                  <option [value]="r.value">{{ r.label }}</option>
+                }
+              </select>
+            </div>
+            @if (inviteError()) {
+              <div class="alert alert-danger py-2 small">{{ inviteError() }}</div>
+            }
+          </div>
+          <div class="modal-footer border-0 pt-0 gap-2">
+            <button class="btn btn-sm btn-outline-secondary" (click)="closeModal()">Annuler</button>
+            <button class="btn btn-sm btn-primary" (click)="sendInvite()" [disabled]="sending() || !inviteEmail">
+              @if (sending()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              Envoyer l'invitation
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Shifts modal ──────────────────────────────────────────────────────────── -->
+@if (showShiftsModal() && selectedEmployee) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.35)" (click)="closeShiftsModal()">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow-sm rounded-3">
+        <div class="modal-header border-0 pb-0">
+          <h6 class="modal-title fw-semibold">
+            <i class="bi bi-calendar-week me-2 text-primary"></i>
+            Horaires — {{ selectedEmployee.firstName }} {{ selectedEmployee.lastName }}
+          </h6>
+          <button type="button" class="btn-close" (click)="closeShiftsModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small mb-3">Cochez les jours travaillés et définissez les horaires.</p>
+          <div class="d-flex flex-column gap-2">
+            @for (row of shiftRows; track row.day) {
+              <div class="d-flex align-items-center gap-2 p-2 rounded"
+                   [style.background]="row.enabled ? '#f0fdf4' : '#f8fafc'"
+                   [style.border]="row.enabled ? '1px solid #86efac' : '1px solid #e2e8f0'">
+                <div class="form-check mb-0" style="min-width:60px">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    [(ngModel)]="row.enabled"
+                    [id]="'day-' + row.day"
+                  >
+                  <label class="form-check-label small fw-medium" [for]="'day-' + row.day">
+                    {{ row.label }}
+                  </label>
+                </div>
+                @if (row.enabled) {
+                  <input
+                    type="time"
+                    class="form-control form-control-sm"
+                    [(ngModel)]="row.start"
+                    [name]="'start-' + row.day"
+                    style="max-width:100px"
+                  >
+                  <span class="text-muted small">→</span>
+                  <input
+                    type="time"
+                    class="form-control form-control-sm"
+                    [(ngModel)]="row.end"
+                    [name]="'end-' + row.day"
+                    style="max-width:100px"
+                  >
+                } @else {
+                  <span class="text-muted small ms-2">Repos</span>
+                }
+              </div>
+            }
+          </div>
+          @if (shiftsError()) {
+            <div class="alert alert-danger py-2 small mt-3">{{ shiftsError() }}</div>
+          }
+        </div>
+        <div class="modal-footer border-0 pt-0 gap-2">
+          <button class="btn btn-sm btn-outline-secondary" (click)="closeShiftsModal()">Annuler</button>
+          <button class="btn btn-sm btn-primary" (click)="saveShifts()" [disabled]="savingShifts()">
+            @if (savingShifts()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

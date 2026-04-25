@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Amira — System Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #f8fafc; --surface: #ffffff; --text: #0f172a;
+    --muted: #64748b; --primary: #2563eb; --accent: #7c3aed;
+    --border: #e2e8f0; --radius: 14px;
+    --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 0; }
+  .hero {
+    background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+    color: white; padding: 48px 40px; text-align: center;
+  }
+  .hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+  .hero p { font-size: 16px; opacity: 0.85; }
+  .hero .badge { display: inline-block; background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 20px; font-size: 12px; margin-top: 12px; backdrop-filter: blur(4px); }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+  h2 { font-size: 22px; font-weight: 700; margin: 40px 0 16px; color: var(--text); display: flex; align-items: center; gap: 10px; }
+  h2 .icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; color: var(--text); }
+  p, li { font-size: 14px; line-height: 1.7; color: var(--muted); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; margin: 16px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+  .mermaid { margin: 20px 0; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .tag-blue { background: #eff6ff; color: #2563eb; }
+  .tag-purple { background: #f5f3ff; color: #7c3aed; }
+  .tag-green { background: #ecfdf5; color: #059669; }
+  .tag-amber { background: #fffbeb; color: #b45309; }
+  .tag-red { background: #fef2f2; color: #dc2626; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+  th { text-align: left; padding: 10px 14px; background: var(--bg); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:hover td { background: #f8fafc; }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+  .principle { border-left: 3px solid var(--primary); padding-left: 16px; margin: 12px 0; }
+  .principle strong { color: var(--text); }
+  .divider { height: 1px; background: var(--border); margin: 40px 0; }
+  nav { position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 10px 24px; z-index: 100; display: flex; gap: 20px; align-items: center; }
+  nav a { font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; }
+  nav a:hover { color: var(--text); }
+  nav a.active { color: var(--primary); border-bottom-color: var(--primary); }
+  nav .logo { font-weight: 700; color: var(--text); font-size: 14px; margin-right: 16px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">Dr. Amira Docs</span>
+  <a href="architecture.html" class="active">Architecture</a>
+  <a href="flow.html">Data Flow</a>
+  <a href="decisions.html">Decisions</a>
+  <a href="ui-interactions.html">UI Interactions</a>
+</nav>
+
+<div class="hero">
+  <h1>Dr. Amira — System Architecture</h1>
+  <p>Local AI medical assistant for Dawini Desktop</p>
+  <div class="badge">v1.0 — April 2026</div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#eff6ff;color:#2563eb">1</span> Core Principle</h2>
+
+<div class="principle">
+  <strong>Amira ALWAYS speaks through the LLM — but ONLY from Layer 1 and Layer 2 data.</strong>
+  <p>She never answers from the model's own training knowledge. If no reference data is found, she says "I don't have this in my references" instead of guessing. The LLM is the voice, not the brain.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#f5f3ff;color:#7c3aed">2</span> 3-Layer Knowledge Architecture</h2>
+
+<div class="mermaid">
+graph TB
+    Q["Doctor's query + screen context<br/><i>(varies per screen — see below)</i>"] --> SEARCH
+
+    subgraph SEARCH["RETRIEVE — Search for references"]
+        direction TB
+        L1["Layer 1: Doctor's Documents<br/><i>Dorosz, Vidal, MSPRH guides, university notes</i><br/><b>LanceDB — HNSW vector search</b><br/><code>O(log n) ~5ms | semantic similarity</code>"]
+        L2["Layer 2: Pre-bundled Data<br/><i>CIM-10, lab normals, vaccination DZ, WHO drugs, laws</i><br/><b>In-memory JSON (loaded at startup from seed files)</b><br/><code>&lt;1ms | Array.filter + String.includes</code>"]
+        L1 --> MERGE
+        L2 --> MERGE
+        MERGE["Merge all found chunks + rows"]
+    end
+
+    MERGE --> LLM
+
+    subgraph LLM["LLM GENERATES — Mistral Nemo 12B"]
+        PROMPT["System prompt: personality + 'ONLY use refs'<br/>+ Screen context (see table below)<br/>+ Merged references from L1+L2<br/>+ Doctor's question"]
+        PROMPT --> RESPONSE["Response with citations<br/>or 'I don't have this info'"]
+    end
+
+    style L1 fill:#eff6ff,stroke:#2563eb,color:#1e40af
+    style L2 fill:#ecfdf5,stroke:#059669,color:#065f46
+    style LLM fill:#f5f3ff,stroke:#7c3aed,color:#5b21b6
+    style SEARCH fill:#f8fafc,stroke:#e2e8f0
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h3><span class="tag tag-blue">Layer 1</span> Doctor's Documents</h3>
+    <p>PDFs, DOCX, TXT that the doctor drops into the library. Indexed into vector embeddings via LanceDB.</p>
+    <p><strong>Algorithm:</strong> HNSW (Hierarchical Navigable Small World) — cosine similarity search, O(log n), ~5ms on 50K vectors.</p>
+    <p><strong>Trust level:</strong> Highest — doctor's own verified references.</p>
+    <p><strong>Examples:</strong> Dorosz 2025, Vidal, MSPRH guide ATB, university course notes, personal protocols.</p>
+  </div>
+  <div class="card">
+    <h3><span class="tag tag-green">Layer 2</span> Pre-bundled Data</h3>
+    <p>Free, verified datasets shipped with the app. Loaded into memory from JSON files at startup.</p>
+    <p><strong>Algorithm:</strong> In-memory Array.filter + String.includes (&lt;1ms on datasets &lt;5MB). Laws searched via substring match.</p>
+    <p><strong>Trust level:</strong> High — official sources (WHO, MSPRH, JORA).</p>
+    <p><strong>Examples:</strong> CIM-10 codes, lab normal ranges, vaccination calendar, tarification CNAS.</p>
+  </div>
+  <div class="card">
+    <h3><span class="tag tag-purple">LLM</span> The Voice</h3>
+    <p>Mistral Nemo 12B (local, GGUF). Reads the references from L1+L2 and generates a natural, cited response.</p>
+    <p><strong>Trust level:</strong> N/A — it only speaks from provided data, never from its own knowledge.</p>
+    <p><strong>If no data found:</strong> "Je n'ai pas cette information dans mes r&eacute;f&eacute;rences."</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#fffbeb;color:#b45309">&#9737;</span> Screen Context — What Gets Injected Where</h2>
+
+<p>The context sent to the LLM is <strong>not the same on every screen</strong>. Each screen injects only the data relevant to what the doctor is doing:</p>
+
+<div class="card">
+<table>
+  <thead>
+    <tr><th>Screen</th><th>Context Injected</th><th>NOT Included</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Consultation</strong></td>
+      <td>Patient (age, gender, history, current meds) + current vitals (TA, poids, temp) + motif</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><strong>Ordonnance</strong></td>
+      <td>Patient (age, weight, renal function, allergies) + current meds + current diagnostic</td>
+      <td>Full consultation notes</td>
+    </tr>
+    <tr>
+      <td><strong>Certificat</strong></td>
+      <td>Patient (name, age) + current consultation diagnostic + certificate type</td>
+      <td>Medication list, lab results</td>
+    </tr>
+    <tr>
+      <td><strong>Patient file</strong></td>
+      <td>Full patient history (all consultations, ordonnances, lab results)</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><strong>Queue triage</strong></td>
+      <td>Patient motif only (reason for visit)</td>
+      <td>Medical history (patient not identified yet)</td>
+    </tr>
+    <tr>
+      <td><strong>Facturation</strong></td>
+      <td>Consultation type + acts performed</td>
+      <td>Patient medical data (privacy)</td>
+    </tr>
+    <tr>
+      <td><strong>Dashboard</strong></td>
+      <td>Today's appointments + overdue follow-ups from DB</td>
+      <td>Specific patient data</td>
+    </tr>
+    <tr>
+      <td><strong>Rendez-vous</strong></td>
+      <td>Patient (if selected) + last consultation date + follow-up rules</td>
+      <td>Full medical history</td>
+    </tr>
+    <tr>
+      <td><strong>Free chat</strong></td>
+      <td>Current screen context (patient if one is open, nothing if not)</td>
+      <td>&mdash;</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="principle">
+  <strong>Minimum data principle:</strong> Each screen sends only what the LLM needs for that specific task. Queue triage doesn't send medical history (the patient hasn't been identified yet). Facturation doesn't send diagnostics (privacy — billing staff shouldn't see clinical notes).
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#ecfdf5;color:#059669">3</span> Decoupled Architecture</h2>
+
+<p>Amira is a <strong>separate module</strong> — she can be removed without breaking any existing functionality.</p>
+
+<div class="mermaid">
+graph LR
+    subgraph DAWINI["Dawini Desktop App"]
+        direction TB
+        subgraph EXISTING["Existing Modules (unchanged)"]
+            AUTH[AuthModule]
+            PAT[PatientsModule]
+            CONS[ConsultationModule]
+            ORD[OrdonnanceModule]
+            CERT[CertificatModule]
+            FACT[FacturationModule]
+            QUEUE[QueueModule]
+            EMP[EmployeesModule]
+            SET[SettingsModule]
+        end
+
+        subgraph AMIRA["Amira Module (isolated)"]
+            direction TB
+            CTRL["AiController<br/><i>POST /ai/query (JSON)<br/>POST /ai/stream (SSE)</i>"]
+            SVC["AiService<br/><i>Orchestrator</i>"]
+            RAG["RagService<br/><i>LanceDB search</i>"]
+            RULES["RulesService<br/><i>In-memory JSON lookup</i>"]
+            LLM2["LlmService<br/><i>node-llama-cpp</i>"]
+            CTX["ContextService<br/><i>Patient/consult data</i>"]
+            CTRL --> SVC
+            SVC --> RAG
+            SVC --> RULES
+            SVC --> LLM2
+            SVC --> CTX
+        end
+    end
+
+    CTX -.->|reads from| PAT
+    CTX -.->|reads from| CONS
+    CTX -.->|reads from| ORD
+    CTX -.->|reads from| CERT
+    CTX -.->|reads from| FACT
+    CTX -.->|reads from| QUEUE
+
+    style AMIRA fill:#f5f3ff,stroke:#7c3aed
+    style EXISTING fill:#f8fafc,stroke:#e2e8f0
+</div>
+
+<div class="principle">
+  <strong>Isolation rule:</strong> Amira reads from existing modules (patient data, consultations, ordonnances) but never writes to them. She suggests — the doctor decides and acts. No existing module depends on Amira.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#fffbeb;color:#b45309">4</span> Data Sources — What We Seed (Real, 2026)</h2>
+
+<h3>Layer 2 — Pre-bundled (shipped with app)</h3>
+<table>
+  <thead>
+    <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Size</th><th>License</th><th>Used In</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>CIM-10 (ICD-10 French)</td><td>WHO/OMS — icd.who.int</td><td>CSV</td><td>2 MB</td><td><span class="tag tag-green">Free</span></td><td>Consultation (diagnostic codes)</td></tr>
+    <tr><td>Normal lab ranges</td><td>Universal medical knowledge (built by us)</td><td>JSON</td><td>80 KB</td><td><span class="tag tag-green">Free</span></td><td>Consultation (vital/lab alerts)</td></tr>
+    <tr><td>Vaccination schedule DZ</td><td>MSPRH — sante.gov.dz</td><td>JSON</td><td>50 KB</td><td><span class="tag tag-green">Free</span></td><td>Patient file (vaccine due alerts)</td></tr>
+    <tr><td>WHO Essential Medicines</td><td>WHO — who.int/medicines</td><td>CSV</td><td>500 KB</td><td><span class="tag tag-green">Free</span></td><td>Ordonnance (basic drug reference)</td></tr>
+    <tr><td>Tarification CNAS</td><td>Journal Officiel (JORA)</td><td>JSON</td><td>200 KB</td><td><span class="tag tag-green">Free</span></td><td>Facturation (fee lookup)</td></tr>
+    <tr><td>NGAP actes m&eacute;dicaux</td><td>Journal Officiel (JORA)</td><td>JSON</td><td>300 KB</td><td><span class="tag tag-green">Free</span></td><td>Facturation (act codes)</td></tr>
+    <tr><td>Loi 18-07 (data protection)</td><td>Journal Officiel (JORA)</td><td>TXT</td><td>150 KB</td><td><span class="tag tag-green">Free</span></td><td>All screens (compliance)</td></tr>
+    <tr><td>Loi 18-11 (health law)</td><td>Journal Officiel (JORA)</td><td>TXT</td><td>150 KB</td><td><span class="tag tag-green">Free</span></td><td>All screens (compliance)</td></tr>
+    <tr><td>Code d&eacute;ontologie m&eacute;dicale</td><td>Journal Officiel (JORA)</td><td>TXT</td><td>200 KB</td><td><span class="tag tag-green">Free</span></td><td>Certificat (legal rules)</td></tr>
+    <tr><td>Triage severity rules</td><td>Built by us (universal emergency medicine)</td><td>JSON</td><td>50 KB</td><td><span class="tag tag-green">Free</span></td><td>Queue (urgency detection)</td></tr>
+  </tbody>
+</table>
+<p><strong>Total pre-bundled: ~4 MB</strong></p>
+
+<h3>Layer 1 — Doctor provides (NOT shipped, indexed locally)</h3>
+<table>
+  <thead>
+    <tr><th>Document</th><th>What It Is</th><th>Why We Can't Bundle It</th><th>Used In</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Dorosz (Guide pratique des m&eacute;dicaments)</td><td>Drug reference — posologies, CI, interactions</td><td><span class="tag tag-red">Copyrighted</span> — doctor buys it (~40&euro;/year)</td><td>Ordonnance, Consultation</td></tr>
+    <tr><td>Vidal</td><td>Comprehensive drug database</td><td><span class="tag tag-red">Copyrighted</span> — subscription-based</td><td>Ordonnance, Consultation</td></tr>
+    <tr><td>Guide ATB MSPRH</td><td>Antibiotic prescription protocols for Algeria</td><td><span class="tag tag-amber">Access unclear</span> — circulates as PDF via WhatsApp, not always on gouv.dz</td><td>Consultation (infections)</td></tr>
+    <tr><td>Protocoles th&eacute;rapeutiques MSPRH</td><td>HTA, diab&egrave;te, asthme treatment protocols</td><td><span class="tag tag-amber">Access unclear</span> — from formation seminars</td><td>Consultation (treatment plans)</td></tr>
+    <tr><td>University course notes</td><td>Doctor's own medical education materials</td><td><span class="tag tag-blue">Personal</span> — varies per doctor</td><td>All screens</td></tr>
+    <tr><td>Personal protocols</td><td>"Mon protocole HTA", custom templates</td><td><span class="tag tag-blue">Personal</span> — doctor creates them</td><td>Consultation, Ordonnance</td></tr>
+    <tr><td>LNCPP drug list (DCI &rarr; trade names DZ)</td><td>Algerian drug names mapping</td><td><span class="tag tag-amber">Access unclear</span> — lncpp.dz has data but not as structured CSV</td><td>Ordonnance</td></tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#fef2f2;color:#dc2626">5</span> Tech Stack</h2>
+
+<div class="grid-2">
+  <div class="card">
+    <h3>LLM Engine</h3>
+    <table>
+      <tr><td>Library</td><td><code>node-llama-cpp</code></td></tr>
+      <tr><td>Primary model</td><td>Mistral Nemo 12B (Q4_K_M, ~7GB)</td></tr>
+      <tr><td>Fallback model</td><td>BioMistral 7B (Q4_K_M, ~4.5GB)</td></tr>
+      <tr><td>Light model</td><td>Mistral 7B (Q4_K_M, ~4.5GB)</td></tr>
+      <tr><td>GPU support</td><td>CUDA / Metal / Vulkan (optional)</td></tr>
+      <tr><td>RAM needed</td><td>8-10 GB</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Vector Database (RAG)</h3>
+    <table>
+      <tr><td>Database</td><td><code>LanceDB</code> (embedded, pure JS)</td></tr>
+      <tr><td>Embedding model</td><td>all-MiniLM-L6-v2 (ONNX, 22MB)</td></tr>
+      <tr><td>Vector dimensions</td><td>384</td></tr>
+      <tr><td>Chunk size</td><td>500 tokens, 50 token overlap</td></tr>
+      <tr><td>PDF parser</td><td><code>pdf-parse</code></td></tr>
+      <tr><td>DOCX parser</td><td><code>mammoth</code></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#eff6ff;color:#2563eb">6</span> Module Structure (Server)</h2>
+
+<div class="card">
+<pre style="font-size:13px;line-height:1.6;color:#334155;overflow-x:auto">
+server/
+├── ai/                              ← Amira module (fully isolated)
+│   ├── ai.module.ts                 ← NestJS module declaration
+│   ├── ai.controller.ts             ← POST /ai/query (SSE streaming)
+│   ├── ai.service.ts                ← Orchestrator: search L1+L2 → build prompt → call LLM
+│   ├── llm.service.ts               ← node-llama-cpp wrapper (model loading, inference)
+│   ├── rag.service.ts               ← LanceDB: embed query → vector search → return chunks
+│   ├── rules.service.ts             ← In-memory JSON: structured lookups (CIM-10, drugs, tarifs)
+│   ├── context.service.ts           ← Reads patient, consultation, ordonnance from DB
+│   ├── indexer.service.ts           ← PDF/DOCX parser → chunker → embed → store in LanceDB
+│   ├── prompts/
+│   │   └── system-prompt.ts         ← Dr. Amira's personality + rules (hardcoded)
+│   ├── data/                        ← Layer 2 pre-bundled seed data
+│   │   ├── cim10.json
+│   │   ├── lab-normals.json
+│   │   ├── vaccination-dz.json
+│   │   ├── who-essential-meds.json
+│   │   ├── tarification-cnas.json
+│   │   ├── triage-rules.json
+│   │   └── laws/
+│   │       ├── loi-18-07.txt
+│   │       ├── loi-18-11.txt
+│   │       └── code-deontologie.txt
+│   └── entities/
+│       └── knowledge-chunk.entity.ts ← LanceDB document schema
+│
+├── (existing modules — unchanged)
+│   ├── auth/
+│   ├── patient/
+│   ├── consultation/
+│   ├── ordonnance/
+│   └── ...
+
+app/
+├── features/
+│   └── amira/                       ← Frontend components (isolated)
+│       ├── amira-fab.component.ts          ← Floating action button
+│       ├── amira-panel.component.ts        ← Slide-out conversation
+│       ├── amira-suggest.component.ts      ← Suggestion cards
+│       ├── amira-whisper.component.ts      ← Inline hints
+│       ├── amira-welcome.component.ts      ← First-time onboarding
+│       └── amira-library.component.ts      ← PDF upload &amp; management
+├── core/services/
+│   └── amira.service.ts             ← Frontend API client for AI
+</pre>
+</div>
+
+<div class="divider"></div>
+<p style="text-align:center;font-size:12px;color:var(--muted)">Dr. Amira Architecture Document — Dawini Desktop — April 2026</p>
+
+</div>
+
+<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral', themeVariables: { fontSize: '13px' } });</script>
+</body>
+</html>

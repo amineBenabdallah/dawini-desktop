@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dawini Desktop — Fiche Partenaire</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f6f3; --surface: #ffffff; --surface2: #f0ede8;
+    --border: #e2ddd6; --border2: #d4cfc8; --text: #1a1714; --muted: #7a7068; --faint: #b5afa6;
+    --green: #1a7a35; --green-bg: #edf7f0; --green-border: #b8dfc4;
+    --amber: #92600a; --amber-bg: #fdf6e8; --amber-border: #f0d49a;
+    --purple: #5b3fb5; --purple-bg: #f2effe; --purple-border: #c5b8f5;
+    --blue: #1a5fa8; --blue-bg: #eef4fd; --blue-border: #b0ccf0;
+    --coral: #c0510a; --coral-bg: #fef2ea; --coral-border: #f5c49a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.7; }
+
+  .header { padding: 48px 0 32px; text-align: center; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #f7f6f3 0%, #f0ede8 100%); }
+  .logo { font-family: 'Fraunces', serif; font-size: 52px; font-weight: 700; letter-spacing: -1px; color: #1a1714; margin-bottom: 6px; }
+  .logo span { color: var(--green); }
+  .tagline { font-size: 14px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 300; }
+  .badge-desktop { display: inline-block; font-size: 11px; color: var(--purple); padding: 4px 12px; background: var(--purple-bg); border: 1px solid var(--purple-border); border-radius: 20px; font-weight: 500; margin-top: 10px; }
+
+  .toolbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 32px; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 100; }
+  .toolbar-left { display: flex; align-items: center; gap: 12px; }
+  .badge-doc { font-size: 11px; color: var(--purple); padding: 4px 10px; background: var(--purple-bg); border: 1px solid var(--purple-border); border-radius: 20px; font-weight: 500; }
+  .btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 7px 16px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; background: var(--surface); color: var(--muted); transition: all 0.15s; }
+  .btn:hover { background: var(--surface2); color: var(--text); }
+  .btn-primary { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn-primary:hover { background: #15682c; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 32px 80px; display: flex; flex-direction: column; gap: 24px; }
+
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .sec-head { display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: var(--surface2); cursor: pointer; user-select: none; transition: background 0.15s; }
+  .sec-head:hover { background: #e8e4de; }
+  .section.open .sec-head { border-bottom: 1px solid var(--border); }
+  .sec-num { font-size: 10px; font-weight: 500; color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); border-radius: 6px; padding: 3px 8px; }
+  .sec-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 500; color: var(--text); }
+  .sec-sub { font-size: 11px; color: var(--faint); margin-left: auto; }
+  .sec-chevron { margin-left: 12px; color: var(--faint); font-size: 11px; transition: transform 0.2s; }
+  .section.open .sec-chevron { transform: rotate(180deg); }
+  .sec-body { padding: 20px; display: none; }
+  .section.open .sec-body { display: block; }
+
+  .prose { color: var(--muted); line-height: 1.8; font-size: 13px; }
+  .prose strong { color: var(--text); font-weight: 500; }
+
+  .steps { display: flex; flex-direction: column; gap: 10px; }
+  .step { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; }
+  .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--green); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-body { font-size: 12.5px; line-height: 1.6; color: var(--muted); }
+  .step-body strong { display: block; font-size: 13px; color: var(--text); font-weight: 500; margin-bottom: 2px; }
+
+  .payout-box { background: var(--green-bg); border: 1px solid var(--green-border); border-radius: 10px; padding: 20px 24px; text-align: center; margin-top: 16px; }
+  .payout-amount { font-family: 'Fraunces', serif; font-size: 2.4rem; font-weight: 700; color: var(--green); display: block; margin: 4px 0; }
+  .payout-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--green); }
+  .payout-note { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+
+  .callout { border-radius: 8px; padding: 12px 16px; font-size: 12.5px; line-height: 1.6; }
+  .callout strong { color: var(--text); font-weight: 500; }
+  .callout.amber { background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber); }
+  .callout.blue { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+  .callout.green { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+  .callout.purple { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple); }
+
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { text-align: left; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--border2); }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  td { padding: 10px 14px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+  td strong { color: var(--text); font-weight: 500; }
+  td.pos { color: var(--green); font-weight: 500; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+  .tag.blue { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+  .tag.gray { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+  .tag.purple { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple); font-weight: 600; }
+
+  .cta-box { background: linear-gradient(135deg, #0f2617 0%, #1a4a28 100%); border-radius: 12px; padding: 36px 32px; text-align: center; color: #fff; }
+  .cta-box h3 { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+  .cta-box p { color: #a3c9ad; font-size: 13px; line-height: 1.7; margin-bottom: 24px; }
+  .cta-channels { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .cta-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.15s; }
+  .cta-btn.email { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+  .cta-btn.email:hover { background: rgba(255,255,255,0.2); }
+  .cta-btn.whatsapp { background: #25d366; color: #fff; border: 1px solid #1db954; }
+  .cta-btn.whatsapp:hover { background: #1db954; }
+
+  @media print { .toolbar { position: static; } .btn { display: none; } }
+  @media (max-width: 640px) { .wrap { padding: 16px; } .toolbar { padding: 10px 16px; } .cta-channels { flex-direction: column; align-items: center; } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">Dawi<span>ni</span></div>
+  <div class="tagline">Fiche Partenaire &middot; Application Desktop &middot; Cabinets M&eacute;dicaux &middot; Alg&eacute;rie</div>
+  <div class="badge-desktop">&#x1F4BB; Version Desktop</div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="toolbar-left">
+    <span class="badge-doc">&#x1F4BB; Application de bureau</span>
+  </div>
+  <div>
+    <button class="btn" onclick="toggleAll(true)">Tout d&eacute;plier</button>
+    <button class="btn" onclick="toggleAll(false)">Tout replier</button>
+    <button class="btn btn-primary" onclick="window.print()">Imprimer / PDF</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- 1. ABOUT -->
+  <div class="section open">
+    <div class="sec-head" onclick="toggle(this)">
+      <span class="sec-num">1</span>
+      <span class="sec-title">Dawini Desktop &mdash; Logiciel de cabinet m&eacute;dical</span>
+      <span class="sec-sub">Ce que vous promouvez</span>
+      <span class="sec-chevron">&blacktriangledown;</span>
+    </div>
+    <div class="sec-body">
+      <p class="prose">
+        Dawini Desktop est une <strong>application de bureau</strong> install&eacute;e directement sur l&rsquo;ordinateur du m&eacute;decin.
+        Pas d&rsquo;internet requis apr&egrave;s installation &mdash; toutes les donn&eacute;es restent en local sur la machine du m&eacute;decin.
+        L&rsquo;application couvre tout ce dont un cabinet a besoin : <strong>rendez-vous, ordonnances, certificats, facturation,
+        gestion du personnel, file d&rsquo;attente num&eacute;rique</strong> et une <strong>assistante IA int&eacute;gr&eacute;e (Dr. Amira)</strong>.
+        <br><br>
+        <strong>Vous &ecirc;tes r&eacute;mun&eacute;r&eacute; pour chaque m&eacute;decin qui ach&egrave;te une licence via votre code de parrainage.</strong>
+      </p>
+      <div class="callout purple" style="margin-top:16px">
+        <strong>Diff&eacute;rence avec la version web :</strong> Dawini Desktop s&rsquo;installe une seule fois, fonctionne sans internet, et les donn&eacute;es ne quittent jamais l&rsquo;ordinateur du m&eacute;decin. Id&eacute;al pour les cabinets en zone rurale ou les m&eacute;decins qui pr&eacute;f&egrave;rent garder leurs donn&eacute;es en local.
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. HOW YOU EARN -->
+  <div class="section">
+    <div class="sec-head" onclick="toggle(this)">
+      <span class="sec-num">2</span>
+      <span class="sec-title">Comment vous gagnez</span>
+      <span class="sec-sub">Code de parrainage &middot; r&eacute;duction m&eacute;decin &middot; votre commission</span>
+      <span class="sec-chevron">&blacktriangledown;</span>
+    </div>
+    <div class="sec-body">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Vous recevez un code de parrainage personnel</strong>
+            Un code unique li&eacute; &agrave; votre nom (ex : AHMED50). Partagez-le avec autant de m&eacute;decins que vous le souhaitez.
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Le m&eacute;decin installe l&rsquo;application, entre la cl&eacute; de licence + votre code &rarr; il b&eacute;n&eacute;ficie de 15 % de r&eacute;duction</strong>
+            Le prix standard est de <strong>648 CAD / an</strong>. Avec votre code, le m&eacute;decin paie <strong>550 CAD</strong> pour sa premi&egrave;re ann&eacute;e. Il entre les deux dans <strong>Param&egrave;tres &gt; Licence</strong> : la cl&eacute; de licence (fournie avec l&rsquo;application) et votre code partenaire. L&rsquo;application enregistre l&rsquo;activation et passe en &laquo; attente de validation &raquo;.
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Vous collectez le paiement du m&eacute;decin et nous versez la part &eacute;diteur</strong>
+            Le m&eacute;decin vous paie <strong>550 CAD</strong>. Vous nous reversez <strong>275 CAD</strong> (50 %). D&egrave;s r&eacute;ception, nous activons la licence depuis notre tableau de bord.
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Vous gardez 50 % &mdash; 275 CAD par m&eacute;decin</strong>
+            Votre commission est la moiti&eacute; du paiement du m&eacute;decin. Vers&eacute;e en une seule fois par m&eacute;decin.
+          </div>
+        </div>
+      </div>
+
+      <div class="payout-box">
+        <span class="payout-label">Vos gains par m&eacute;decin</span>
+        <span class="payout-amount">275 CAD</span>
+        <span class="payout-label">50 % de 550 CAD &middot; unique &middot; par m&eacute;decin</span>
+        <div class="payout-note">Le m&eacute;decin paie 550 CAD (apr&egrave;s 15 % de r&eacute;duction) &rarr; vous gardez 275 CAD, vous nous reversez 275 CAD</div>
+      </div>
+
+      <div class="callout amber" style="margin-top:14px">
+        <strong>La licence reste en attente jusqu&rsquo;&agrave; r&eacute;ception de votre paiement.</strong> Le m&eacute;decin dispose de 14 jours d&rsquo;essai gratuit. Si le paiement n&rsquo;est pas re&ccedil;u, la licence n&rsquo;est pas activ&eacute;e et l&rsquo;application se verrouille.
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. EARNINGS TABLE -->
+  <div class="section">
+    <div class="sec-head" onclick="toggle(this)">
+      <span class="sec-num">3</span>
+      <span class="sec-title">Tableau des gains</span>
+      <span class="sec-sub">275 CAD par m&eacute;decin &middot; unique</span>
+      <span class="sec-chevron">&blacktriangledown;</span>
+    </div>
+    <div class="sec-body">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>M&eacute;decins parrain&eacute;s</th><th>Vos gains (CAD)</th><th>Vos gains (DZD ~)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>1</strong></td><td class="pos">275 CAD</td><td>~26,125 DA</td></tr>
+            <tr><td><strong>5</strong></td><td class="pos">1,375 CAD</td><td>~130,625 DA</td></tr>
+            <tr><td><strong>10</strong></td><td class="pos">2,750 CAD</td><td>~261,250 DA</td></tr>
+            <tr><td><strong>20</strong></td><td class="pos">5,500 CAD</td><td>~522,500 DA</td></tr>
+            <tr><td><strong>50</strong></td><td class="pos">13,750 CAD</td><td>~1,306,250 DA</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout green" style="margin-top:14px">
+        <strong>Aucun plafond.</strong> Pas de limite au nombre de m&eacute;decins. Chaque m&eacute;decin qui active avec votre code compte. Licence de 12 mois &mdash; la dur&eacute;e commence au moment o&ugrave; nous validons.
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. WHO TO TARGET -->
+  <div class="section">
+    <div class="sec-head" onclick="toggle(this)">
+      <span class="sec-num">4</span>
+      <span class="sec-title">Qui cibler</span>
+      <span class="sec-sub">Tout cabinet priv&eacute; en Alg&eacute;rie</span>
+      <span class="sec-chevron">&blacktriangledown;</span>
+    </div>
+    <div class="sec-body">
+      <p class="prose" style="margin-bottom:16px">
+        Tout praticien priv&eacute; exer&ccedil;ant dans son propre cabinet est un prospect valide.
+        L&rsquo;application fonctionne avec <strong>toutes les sp&eacute;cialit&eacute;s</strong>.
+        Ciblez en priorit&eacute; les m&eacute;decins qui :
+      </p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Profil</th><th>Pourquoi Dawini Desktop</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Travaillent en zone rurale</strong></td><td>Pas d&rsquo;internet fiable &mdash; Dawini Desktop fonctionne 100 % hors ligne</td></tr>
+            <tr><td><strong>G&egrave;rent un gros volume de patients</strong></td><td>20 &agrave; 50 patients/jour &mdash; besoin d&rsquo;un agenda et d&rsquo;ordonnances rapides</td></tr>
+            <tr><td><strong>Utilisent encore le papier</strong></td><td>Ordonnances manuscrites, registre papier &mdash; passage au num&eacute;rique imm&eacute;diat</td></tr>
+            <tr><td><strong>Pr&eacute;f&egrave;rent garder leurs donn&eacute;es en local</strong></td><td>Donn&eacute;es stock&eacute;es sur leur PC &mdash; pas de cloud, pas de risque de piratage</td></tr>
+            <tr><td><strong>Ont d&eacute;j&agrave; un PC au cabinet</strong></td><td>Installation en 5 minutes &mdash; pas de mat&eacute;riel suppl&eacute;mentaire</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:14px">
+        <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px">Meilleurs canaux</div>
+        <div class="tags">
+          <span class="tag blue">Visites directes aux cabinets</span>
+          <span class="tag blue">Groupes WhatsApp de m&eacute;decins</span>
+          <span class="tag blue">D&eacute;l&eacute;gu&eacute;s m&eacute;dicaux</span>
+          <span class="tag gray">Congr&egrave;s m&eacute;dicaux</span>
+          <span class="tag gray">Recommandation par d&rsquo;autres m&eacute;decins</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. FEATURES -->
+  <div class="section">
+    <div class="sec-head" onclick="toggle(this)">
+      <span class="sec-num">5</span>
+      <span class="sec-title">Ce que fait Dawini Desktop</span>
+      <span class="sec-sub">Fonctionnalit&eacute;s pour le m&eacute;decin</span>
+      <span class="sec-chevron">&blacktriangledown;</span>
+    </div>
+    <div class="sec-body">
+      <div class="callout purple" style="margin-bottom:14px">
+        <strong>Fonctionnalit&eacute; exclusive :</strong> <span class="tag purple" style="display:inline-flex;vertical-align:middle">Dr. Amira &mdash; IA m&eacute;dicale int&eacute;gr&eacute;e</span>
+        &mdash; une assistante IA locale qui aide le m&eacute;decin pendant ses consultations, sans internet et sans co&ucirc;t suppl&eacute;mentaire.
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Fonctionnalit&eacute;</th><th>Ce que &ccedil;a apporte</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Dossiers patients</strong></td><td>Recherche rapide, historique complet, num&eacute;rotation automatique</td></tr>
+            <tr><td><strong>Rendez-vous</strong></td><td>Agenda visuel, d&eacute;tection de conflits, suivi du statut</td></tr>
+            <tr><td><strong>Consultations</strong></td><td>Notes cliniques, pi&egrave;ces jointes, historique par patient</td></tr>
+            <tr><td><strong>Ordonnances</strong></td><td>G&eacute;n&eacute;r&eacute;es en secondes, num&eacute;rot&eacute;es, pr&ecirc;tes &agrave; imprimer</td></tr>
+            <tr><td><strong>Certificats</strong></td><td>4 types (repos, aptitude, scolaire, inaptitude) &mdash; format alg&eacute;rien</td></tr>
+            <tr><td><strong>Facturation</strong></td><td>Suivi des paiements, modes multiples (esp&egrave;ces, CIB, Edahabia)</td></tr>
+            <tr><td><strong>File d&rsquo;attente WiFi</strong></td><td>Patients suivent leur position sur leur t&eacute;l&eacute;phone via le WiFi du cabinet</td></tr>
+            <tr><td><strong>Dr. Amira (IA)</strong></td><td>Suggestions m&eacute;dicales, aide &agrave; la r&eacute;daction, r&eacute;f&eacute;rences — 100 % locale</td></tr>
+            <tr><td><strong>Impression native</strong></td><td>Impression directe sans passer par le navigateur</td></tr>
+            <tr><td><strong>Fonctionne hors ligne</strong></td><td>Aucune connexion internet requise apr&egrave;s installation</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. ARGUMENTS DE VENTE -->
+  <div class="section">
+    <div class="sec-head" onclick="toggle(this)">
+      <span class="sec-num">6</span>
+      <span class="sec-title">Arguments de vente</span>
+      <span class="sec-sub">Ce qui convainc le m&eacute;decin</span>
+      <span class="sec-chevron">&blacktriangledown;</span>
+    </div>
+    <div class="sec-body">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Objection du m&eacute;decin</th><th>Votre r&eacute;ponse</th></tr></thead>
+          <tbody>
+            <tr><td><strong>&laquo; Je n&rsquo;ai pas d&rsquo;internet fiable &raquo;</strong></td><td>Dawini Desktop fonctionne 100 % hors ligne. Les donn&eacute;es sont sur votre PC.</td></tr>
+            <tr><td><strong>&laquo; Je ne veux pas mes donn&eacute;es dans le cloud &raquo;</strong></td><td>Aucune donn&eacute;e ne quitte votre ordinateur. Pas de serveur, pas de cloud.</td></tr>
+            <tr><td><strong>&laquo; C&rsquo;est compliqu&eacute; &agrave; installer &raquo;</strong></td><td>Installation en 5 minutes. Double-cliquez sur le fichier, c&rsquo;est fait.</td></tr>
+            <tr><td><strong>&laquo; J&rsquo;utilise d&eacute;j&agrave; CabiSant&eacute; / Excel &raquo;</strong></td><td>Dawini est plus rapide, inclut la file d&rsquo;attente et l&rsquo;IA, et ne n&eacute;cessite aucun mat&eacute;riel sp&eacute;cial.</td></tr>
+            <tr><td><strong>&laquo; Et si mon PC tombe en panne ? &raquo;</strong></td><td>Les donn&eacute;es sont dans un fichier simple. Une copie sur cl&eacute; USB suffit comme sauvegarde.</td></tr>
+            <tr><td><strong>&laquo; C&rsquo;est quoi Dr. Amira ? &raquo;</strong></td><td>Une IA int&eacute;gr&eacute;e qui aide &agrave; r&eacute;diger les ordonnances, sugg&egrave;re des diagnostics et consulte vos r&eacute;f&eacute;rences m&eacute;dicales — sans internet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. RULES -->
+  <div class="section">
+    <div class="sec-head" onclick="toggle(this)">
+      <span class="sec-num">7</span>
+      <span class="sec-title">R&egrave;gles importantes</span>
+      <span class="sec-sub">Ce que vous devez savoir</span>
+      <span class="sec-chevron">&blacktriangledown;</span>
+    </div>
+    <div class="sec-body">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">&check;</div>
+          <div class="step-body"><strong>Donnez toujours votre code de parrainage au m&eacute;decin</strong>Sans votre code, l&rsquo;activation ne sera pas li&eacute;e &agrave; vous et vous ne recevrez pas votre commission. Le m&eacute;decin entre votre code dans l&rsquo;application au moment de l&rsquo;activation.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">&check;</div>
+          <div class="step-body"><strong>Collectez le paiement avant de nous contacter</strong>Le m&eacute;decin vous paie 550 CAD. Vous nous reversez 275 CAD. Nous activons la licence. Sans votre paiement, la licence reste en attente et se verrouille apr&egrave;s 14 jours.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">&check;</div>
+          <div class="step-body"><strong>Un code = plusieurs m&eacute;decins</strong>Vous utilisez le m&ecirc;me code pour tous vos m&eacute;decins. Chaque activation cr&eacute;e une licence s&eacute;par&eacute;e li&eacute;e &agrave; votre compte.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">&check;</div>
+          <div class="step-body"><strong>Pas de remboursement apr&egrave;s activation</strong>Une fois la licence valid&eacute;e (12 mois), elle ne peut pas &ecirc;tre annul&eacute;e. Le m&eacute;decin dispose de 14 jours d&rsquo;essai gratuit pour tester avant d&rsquo;acheter.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">&check;</div>
+          <div class="step-body"><strong>Ne promettez que ce que l&rsquo;application fait</strong>Utilisez cette fiche comme r&eacute;f&eacute;rence. Ne mentionnez pas de fonctionnalit&eacute;s qui n&rsquo;existent pas.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h3>Pr&ecirc;t &agrave; vendre Dawini Desktop ?</h3>
+    <p>Contactez-nous pour recevoir votre code de parrainage et commencer &agrave; gagner.</p>
+    <div class="cta-channels">
+      <a href="mailto:service@vireoleads.com" class="cta-btn email">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        service@vireoleads.com
+      </a>
+      <a href="https://wa.me/14384530902" target="_blank" class="cta-btn whatsapp">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.849L.057 23.571a.75.75 0 00.925.925l5.824-1.527A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.664-.496-5.195-1.364l-.372-.215-3.857 1.011 1.029-3.76-.234-.386A9.959 9.959 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        +1 438 453 0902
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(head) { head.parentElement.classList.toggle('open'); }
+function toggleAll(open) { document.querySelectorAll('.section').forEach(s => { open ? s.classList.add('open') : s.classList.remove('open'); }); }
+</script>
+</body>
+</html>

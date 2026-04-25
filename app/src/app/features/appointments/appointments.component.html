@@ -1,0 +1,755 @@
+<!-- ── Agenda shell ──────────────────────────────────────────────────────── -->
+<div class="agenda-shell">
+
+  <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+  <div class="agenda-toolbar">
+    <div class="agenda-toolbar__left">
+      <h1 class="agenda-toolbar__title">Agenda</h1>
+    </div>
+    <div class="agenda-toolbar__right">
+
+      <!-- Today button -->
+      <button class="agenda-nav__btn agenda-nav__btn--today" (click)="todayWeek()"
+              [class.is-current-week]="isCurrentWeek()">
+        Aujourd'hui
+      </button>
+
+      <!-- Week range navigator: < 13 – 18 avr. 2026 > -->
+      <div class="agenda-nav" role="group" aria-label="Navigation semaine">
+        <button class="agenda-nav__btn" (click)="prevWeek()" aria-label="Semaine précédente">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <span class="agenda-nav__range">{{ monthLabel() }}</span>
+        <button class="agenda-nav__btn" (click)="nextWeek()" aria-label="Semaine suivante">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+
+      <button class="btn btn-primary btn-sm agenda-toolbar__new" (click)="openModal()">
+        <i class="bi bi-plus-lg me-1"></i>
+        <span class="agenda-toolbar__new-label">Nouveau RDV</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Status filter bar ──────────────────────────────────────────────── -->
+  <div class="agenda-filter-bar">
+    @for (opt of STATUT_OPTIONS; track opt.value) {
+      <button type="button"
+              class="filter-chip"
+              [class.is-active]="isStatusActive(opt.value)"
+              [attr.data-statut]="opt.value"
+              (click)="toggleStatus(opt.value)">
+        <i class="bi {{ opt.icon }}"></i>
+        <span class="filter-chip__label">{{ opt.label }}</span>
+        @if (statusCounts()[opt.value]) {
+          <span class="filter-chip__count">{{ statusCounts()[opt.value] }}</span>
+        }
+      </button>
+    }
+    <span class="filter-total ms-auto">{{ totalLabel() }}</span>
+  </div>
+
+  <!-- ── Week grid ─────────────────────────────────────────────────────────── -->
+  <div class="agenda-week-col">
+    @if (loading()) {
+      <app-loading-spinner />
+    } @else {
+      <sx-calendar [calendarApp]="calendarApp" />
+    }
+  </div>
+
+</div>
+
+<!-- ── Create RDV Modal ─────────────────────────────────────────────────── -->
+@if (showModal()) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(15,23,42,.5);backdrop-filter:blur(4px)" (click)="closeModal()">
+    <div class="modal-dialog modal-lg modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content" style="border:none;border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22)">
+
+        <div class="modal-header border-0 pb-0">
+          <div>
+            <h5 class="modal-title fw-semibold mb-0">Nouveau rendez-vous</h5>
+            <p class="text-muted small mb-0 text-capitalize">{{ formDate() ? formatDate(formDate()) : '' }}</p>
+          </div>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+
+        <div class="modal-body pt-3">
+
+          <!-- ── Inline new patient form ── -->
+          @if (showNewPatient) {
+            <div class="mb-3 p-3 rounded" style="background:#f8fafc;border:1px dashed #cbd5e1">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="field-label mb-0">Nouveau patient</span>
+                <button type="button" class="btn btn-link btn-sm text-danger p-0" style="font-size:.75rem"
+                        (click)="toggleNewPatient()">
+                  <i class="bi bi-x-circle me-1"></i>Annuler
+                </button>
+              </div>
+
+              <div class="row g-2 mb-2">
+                <div class="col-12 col-sm">
+                  <input type="text" class="form-control form-control-sm" placeholder="Prénom *"
+                         [(ngModel)]="newPatient.firstName" maxlength="100" />
+                </div>
+                <div class="col-12 col-sm">
+                  <input type="text" class="form-control form-control-sm" placeholder="Nom *"
+                         [(ngModel)]="newPatient.lastName" maxlength="100" />
+                </div>
+                <div class="col-12 col-sm">
+                  <input type="tel" class="form-control form-control-sm" placeholder="Téléphone *"
+                         [(ngModel)]="newPatient.phone" maxlength="20" />
+                </div>
+                <div class="col-12 col-sm">
+                  <input type="date" class="form-control form-control-sm"
+                         [(ngModel)]="newPatient.dateOfBirth" />
+                </div>
+                <div class="col-auto">
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm"
+                            [class.btn-primary]="newPatient.gender === 'M'"
+                            [class.btn-outline-secondary]="newPatient.gender !== 'M'"
+                            (click)="newPatient.gender = 'M'">M</button>
+                    <button type="button" class="btn btn-sm"
+                            [class.btn-primary]="newPatient.gender === 'F'"
+                            [class.btn-outline-secondary]="newPatient.gender !== 'F'"
+                            (click)="newPatient.gender = 'F'">F</button>
+                  </div>
+                </div>
+              </div>
+
+              @if (!showOptionalPatient) {
+                <button type="button" class="btn btn-link btn-sm text-muted p-0" style="font-size:.75rem"
+                        (click)="showOptionalPatient = true">
+                  <i class="bi bi-plus-circle me-1"></i>Infos supplémentaires (email, wilaya…)
+                </button>
+              } @else {
+                <div class="row g-2 mt-1">
+                  <div class="col-6 col-sm-3">
+                    <input type="email" class="form-control form-control-sm" placeholder="Email"
+                           [(ngModel)]="newPatient.email" />
+                  </div>
+                  <div class="col-6 col-sm-3">
+                    <input type="text" class="form-control form-control-sm" placeholder="Wilaya"
+                           [(ngModel)]="newPatient.wilaya" maxlength="100" />
+                  </div>
+                  <div class="col-6 col-sm-3">
+                    <input type="text" class="form-control form-control-sm" placeholder="Commune"
+                           [(ngModel)]="newPatient.commune" maxlength="100" />
+                  </div>
+                  <div class="col-6 col-sm-3">
+                    <input type="text" class="form-control form-control-sm" placeholder="NSS"
+                           [(ngModel)]="newPatient.nss" maxlength="20" />
+                  </div>
+                </div>
+              }
+
+              <div class="d-flex justify-content-end mt-3 pt-2 border-top">
+                <button type="button" class="btn btn-success btn-sm px-3"
+                        (click)="saveNewPatient()"
+                        [disabled]="!canSavePatient || savingPatient()">
+                  @if (savingPatient()) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                  } @else {
+                    <i class="bi bi-person-check me-1"></i>
+                  }
+                  Enregistrer le patient
+                </button>
+              </div>
+            </div>
+          }
+
+          <div class="row g-4">
+
+            <!-- LEFT: Patient · Doctor · Motif · Notes -->
+            <div class="col-12 col-md-5 d-flex flex-column gap-3">
+
+              <div class="position-relative">
+                <label class="field-label">Patient <span class="text-danger">*</span></label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                  <input type="text" class="form-control border-start-0 ps-0"
+                         placeholder="Taper le nom…"
+                         [ngModel]="patientSearch()"
+                         (ngModelChange)="onPatientSearchChange($event)"
+                         [class.border-success]="selectedPatient()"
+                         [disabled]="showNewPatient"
+                         autocomplete="off" />
+                  @if (selectedPatient()) {
+                    <span class="input-group-text bg-white text-success"><i class="bi bi-check-lg"></i></span>
+                  }
+                </div>
+                @if (showPatientList() && filteredPatients().length > 0) {
+                  <ul class="list-group position-absolute w-100 shadow-sm" style="z-index:1050;top:100%;max-height:160px;overflow-y:auto">
+                    @for (p of filteredPatients(); track p.id) {
+                      <li class="list-group-item list-group-item-action py-2 px-3"
+                          style="cursor:pointer;font-size:.82rem"
+                          (mousedown)="selectPatient(p)">
+                        {{ p.firstName }} {{ p.lastName }}
+                      </li>
+                    }
+                  </ul>
+                }
+                @if (showPatientList() && patientSearch().length > 0 && filteredPatients().length === 0) {
+                  <div class="text-muted small mt-1"><i class="bi bi-info-circle me-1"></i>Aucun patient trouvé</div>
+                }
+                <button type="button" class="btn btn-link btn-sm p-0 mt-1"
+                        [class.text-muted]="!showNewPatient"
+                        [class.text-danger]="showNewPatient"
+                        style="font-size:.75rem;text-decoration:none"
+                        (click)="toggleNewPatient()">
+                  <i class="bi me-1" [class.bi-person-plus]="!showNewPatient" [class.bi-x-circle]="showNewPatient"></i>
+                  {{ showNewPatient ? 'Annuler nouveau patient' : '+ Nouveau patient' }}
+                </button>
+              </div>
+
+              @if (doctors().length > 1) {
+                <div>
+                  <label class="field-label">Médecin <span class="text-danger">*</span></label>
+                  <div class="d-flex flex-wrap gap-1">
+                    @for (d of doctors(); track d.id) {
+                      <button type="button" class="btn btn-sm"
+                              [class.btn-primary]="formDocteurId() === d.id"
+                              [class.btn-outline-secondary]="formDocteurId() !== d.id"
+                              (click)="formDocteurId.set(d.id); onDoctorChange()">
+                        Dr {{ d.firstName }} {{ d.lastName }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+
+              <div>
+                <label class="field-label">Motif <span class="text-danger">*</span></label>
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                  @for (chip of motifChips; track chip) {
+                    <button type="button" class="btn btn-sm"
+                            style="font-size:.76rem"
+                            [class.btn-primary]="formMotif() === chip"
+                            [class.btn-outline-secondary]="formMotif() !== chip"
+                            (click)="selectMotif(chip)">
+                      {{ chip }}
+                    </button>
+                  }
+                </div>
+                <input type="text" class="form-control form-control-sm"
+                       placeholder="Ou saisir un motif…"
+                       [ngModel]="formMotif()"
+                       (ngModelChange)="formMotif.set($event)"
+                       maxlength="500" />
+              </div>
+
+              @if (!showNotesField) {
+                <button type="button" class="btn btn-link btn-sm text-muted p-0" style="font-size:.76rem"
+                        (click)="showNotesField = true">
+                  <i class="bi bi-plus-circle me-1"></i>Ajouter une note
+                </button>
+              } @else {
+                <div>
+                  <label class="field-label">Notes</label>
+                  <textarea class="form-control form-control-sm" rows="3"
+                            [ngModel]="formNotes()"
+                            (ngModelChange)="formNotes.set($event)"
+                            placeholder="Optionnel" maxlength="2000"></textarea>
+                </div>
+              }
+
+            </div>
+
+            <!-- RIGHT: Date · Time · Duration -->
+            <div class="col-12 col-md-7 d-flex flex-column gap-3">
+
+              <div>
+                <label class="field-label">Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control form-control-sm"
+                       [ngModel]="formDate()"
+                       (ngModelChange)="formDate.set($event); onFormDateChange()"
+                       [min]="minDate" />
+              </div>
+
+              <div>
+                <label class="field-label">
+                  Heure <span class="text-danger">*</span>
+                  @if (formTime()) {
+                    <span class="selected-time-badge">{{ formTime() }}</span>
+                  }
+                </label>
+
+                @if (loadingSlots()) {
+                  <div class="suggest-row">
+                    <div class="suggest-skeleton"></div>
+                    <div class="suggest-skeleton"></div>
+                    <div class="suggest-skeleton"></div>
+                  </div>
+                } @else if (suggestedSlots().length > 0) {
+                  <div class="suggest-row">
+                    <span class="suggest-label"><i class="bi bi-stars me-1"></i>Créneaux libres</span>
+                    @for (s of suggestedSlots(); track s.start) {
+                      <button type="button" class="suggest-chip" (click)="selectSlot(s.start)">
+                        {{ slotLabel(s.start) }}
+                      </button>
+                    }
+                  </div>
+                }
+
+                <div class="time-grid">
+                  @for (slot of timeSlots; track slot) {
+                    <button type="button" class="btn btn-sm time-btn"
+                            [class.btn-primary]="formTime() === slot"
+                            [class.btn-outline-secondary]="formTime() !== slot"
+                            (click)="formTime.set(slot)">
+                      {{ slot }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div>
+                <label class="field-label">Durée</label>
+                <div class="d-flex gap-2">
+                  @for (d of [15, 30, 45, 60]; track d) {
+                    <button type="button" class="btn btn-sm flex-fill"
+                            [class.btn-primary]="formDuree() === d"
+                            [class.btn-outline-secondary]="formDuree() !== d"
+                            (click)="formDuree.set(d)">
+                      {{ d }} min
+                    </button>
+                  }
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer border-0 pt-0">
+          <button class="btn btn-outline-secondary btn-sm" (click)="closeModal()" [disabled]="saving()">Annuler</button>
+          <button class="btn btn-primary btn-sm px-4" (click)="create()" [disabled]="saving() || !canCreate()">
+            @if (saving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            Créer le rendez-vous
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Edit off-canvas panel ────────────────────────────────────────────── -->
+@if (editAppt()) {
+  <div class="offcanvas-backdrop fade show" (click)="editAppt.set(null)"></div>
+
+  <div class="offcanvas offcanvas-end show offcanvas-appointments">
+    <div class="offcanvas-header border-bottom">
+      <div>
+        <h5 class="offcanvas-title fw-semibold mb-0 d-flex align-items-center">
+          <span class="status-dot {{ editStatut() }}"></span>
+          {{ editAppt()!.patientFirstName }} {{ editAppt()!.patientLastName }}
+        </h5>
+        <small class="text-muted">
+          {{ formatTime(editAppt()!.dateHeure) }} · {{ editAppt()!.dureeMinutes }} min
+        </small>
+      </div>
+      <button type="button" class="btn-close" (click)="editAppt.set(null)"></button>
+    </div>
+
+    <div class="offcanvas-body d-flex flex-column gap-3">
+
+      <div>
+        <label class="field-label">Statut</label>
+        <div class="d-flex flex-wrap gap-1">
+          @for (opt of STATUT_OPTIONS; track opt.value) {
+            <button type="button" class="btn btn-sm statut-btn"
+                    [attr.data-statut]="opt.value"
+                    [class.is-active]="editStatut() === opt.value"
+                    [disabled]="editSaving()"
+                    (click)="changeStatut(opt.value)">
+              <i class="bi {{ opt.icon }} me-1"></i>{{ opt.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label">Motif</label>
+        <div class="d-flex flex-wrap gap-1 mb-2">
+          @for (chip of motifChips; track chip) {
+            <button type="button" class="btn btn-sm"
+                    style="font-size:.76rem"
+                    [class.btn-primary]="editMotif() === chip"
+                    [class.btn-outline-secondary]="editMotif() !== chip"
+                    (click)="editMotif.set(chip)">{{ chip }}</button>
+          }
+        </div>
+        <input type="text" class="form-control form-control-sm"
+               placeholder="Ou saisir un motif…"
+               [ngModel]="editMotif()"
+               (ngModelChange)="editMotif.set($event)"
+               maxlength="500" />
+      </div>
+
+      <div>
+        <label class="field-label">Durée</label>
+        <div class="d-flex gap-2">
+          @for (d of [15, 30, 45, 60]; track d) {
+            <button type="button" class="btn btn-sm flex-fill"
+                    [class.btn-primary]="editDuree() === d"
+                    [class.btn-outline-secondary]="editDuree() !== d"
+                    (click)="editDuree.set(d)">{{ d }} min</button>
+          }
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label">Notes</label>
+        <textarea class="form-control form-control-sm" rows="3"
+                  [ngModel]="editNotes()"
+                  (ngModelChange)="editNotes.set($event)"
+                  placeholder="Optionnel" maxlength="2000"></textarea>
+      </div>
+
+    </div>
+
+    <div class="offcanvas-footer border-top p-3 d-flex justify-content-between align-items-center">
+
+      @if (!showDeleteConfirm()) {
+        <button class="btn btn-sm btn-outline-danger" (click)="showDeleteConfirm.set(true)" [disabled]="editDeleting()">
+          <i class="bi bi-trash me-1"></i>Annuler RDV
+        </button>
+      } @else {
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-danger small fw-medium">Confirmer ?</span>
+          <button class="btn btn-sm btn-danger" (click)="deleteAppt()" [disabled]="editDeleting()">
+            @if (editDeleting()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            Oui, annuler
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="showDeleteConfirm.set(false)">Non</button>
+        </div>
+      }
+
+      <button class="btn btn-sm btn-primary px-4" (click)="saveEdit()" [disabled]="editSaving()">
+        @if (editSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+        Enregistrer
+      </button>
+
+    </div>
+  </div>
+}
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   AGENDA SHELL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.agenda-shell {
+  display: flex;
+  flex-direction: column;
+  margin: -1.5rem;
+  height: calc(100vh - var(--cm-header-height, 60px));
+  height: calc(100dvh - var(--cm-header-height, 60px));
+  overflow: hidden;
+}
+
+
+/* ── Toolbar ──────────────────────────────────────────────────────────────── */
+.agenda-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .45rem 1.25rem;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15,23,42,.04);
+  flex-shrink: 0;
+  gap: .75rem;
+  z-index: 1;
+}
+.agenda-toolbar__left  { display: flex; align-items: baseline; gap: .6rem; min-width: 0; }
+.agenda-toolbar__title {
+  font-size: 1rem; font-weight: 700; color: #0f172a;
+  margin: 0; white-space: nowrap; letter-spacing: -.01em;
+}
+.agenda-toolbar__right { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+
+/* Today button */
+.agenda-nav__btn--today {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: .3rem .8rem;
+  font-size: .78rem; font-weight: 600; color: #475569;
+  cursor: pointer;
+  transition: all .18s cubic-bezier(.22,1,.36,1);
+  white-space: nowrap;
+}
+.agenda-nav__btn--today:hover {
+  background: #f8fafc; color: #0f172a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+.agenda-nav__btn--today:active { transform: translateY(0); }
+.agenda-nav__btn--today.is-current-week {
+  border-color: #2563eb; color: #2563eb; background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+
+/* Week range navigator */
+.agenda-nav {
+  display: flex; align-items: center;
+  border: 1px solid #e2e8f0; border-radius: 8px;
+  overflow: hidden; background: #fff;
+  transition: box-shadow .15s;
+}
+.agenda-nav:hover { box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+
+.agenda-nav__btn {
+  background: none; border: none;
+  padding: .3rem .6rem; font-size: .82rem; color: #475569;
+  cursor: pointer; line-height: 1;
+  display: flex; align-items: center;
+  transition: background .15s, color .15s, transform .12s;
+}
+.agenda-nav__btn:hover  { background: #f1f5f9; color: #0f172a; }
+.agenda-nav__btn:active { transform: scale(.88); }
+
+.agenda-nav__range {
+  padding: .3rem .65rem; font-size: .78rem; font-weight: 600;
+  color: #1e293b; white-space: nowrap;
+  border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;
+  min-width: 130px; text-align: center; letter-spacing: -.01em;
+}
+
+/* New RDV button */
+.agenda-toolbar__new {
+  border-radius: 8px !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: none !important; color: #fff !important; font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(37,99,235,.28) !important;
+  transition: all .18s cubic-bezier(.22,1,.36,1) !important;
+}
+.agenda-toolbar__new:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 16px rgba(37,99,235,.38) !important;
+  color: #fff !important;
+}
+.agenda-toolbar__new:active { transform: translateY(0) !important; }
+
+/* ── Week grid ────────────────────────────────────────────────────────────── */
+.agenda-week-col { flex: 1 1 0; overflow: hidden; display: flex; flex-direction: column; }
+.agenda-week-col sx-calendar,
+.agenda-week-col app-loading-spinner { flex: 1 1 0; min-height: 0; }
+
+.sx__calendar {
+  --sx-color-primary: #2563eb;
+  --sx-color-primary-container: #dbeafe;
+  --sx-color-on-primary: #fff;
+  font-family: inherit; border: none; height: 100% !important;
+}
+.sx__calendar-wrapper { border: none !important; border-radius: 0 !important; height: 100% !important; }
+
+/* ── Off-canvas footer ────────────────────────────────────────────────────── */
+.offcanvas-footer {
+  padding: .75rem 1rem; border-top: 1px solid #e2e8f0;
+  background: #f8fafc; flex-shrink: 0;
+}
+
+/* ── Status dot ───────────────────────────────────────────────────────────── */
+.status-dot {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 50%; margin-right: .4rem; flex-shrink: 0;
+  transition: box-shadow .2s;
+}
+.status-dot.PLANNED   { background: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+.status-dot.CONFIRMED { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.15); }
+.status-dot.WAITING   { background: #d97706; animation: dot-pulse 1.6s ease-in-out infinite; }
+.status-dot.DONE      { background: #64748b; }
+.status-dot.ABSENT    { background: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,.15); }
+.status-dot.CANCELLED { background: #94a3b8; }
+
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(217,119,6,.2); }
+  50%       { box-shadow: 0 0 0 5px rgba(217,119,6,.07); }
+}
+
+/* ── Status buttons (edit panel) — color-coded ────────────────────────────── */
+.statut-btn {
+  border-radius: 6px !important; font-size: .78rem !important;
+  border: 1.5px solid #e2e8f0 !important; color: #64748b !important;
+  background: #f8fafc !important;
+  transition: all .15s cubic-bezier(.22,1,.36,1) !important;
+}
+.statut-btn:hover:not(:disabled) { transform: translateY(-1px) !important; }
+
+.statut-btn[data-statut="PLANNED"].is-active,
+.statut-btn[data-statut="PLANNED"]:hover:not(:disabled) {
+  background: #eff6ff !important; border-color: #2563eb !important; color: #2563eb !important;
+  box-shadow: 0 2px 8px rgba(37,99,235,.18) !important;
+}
+.statut-btn[data-statut="CONFIRMED"].is-active,
+.statut-btn[data-statut="CONFIRMED"]:hover:not(:disabled) {
+  background: #f0fdf4 !important; border-color: #16a34a !important; color: #16a34a !important;
+  box-shadow: 0 2px 8px rgba(22,163,74,.18) !important;
+}
+.statut-btn[data-statut="WAITING"].is-active,
+.statut-btn[data-statut="WAITING"]:hover:not(:disabled) {
+  background: #fffbeb !important; border-color: #d97706 !important; color: #d97706 !important;
+  box-shadow: 0 2px 8px rgba(217,119,6,.18) !important;
+}
+.statut-btn[data-statut="DONE"].is-active,
+.statut-btn[data-statut="DONE"]:hover:not(:disabled) {
+  background: #f1f5f9 !important; border-color: #64748b !important; color: #334155 !important;
+  box-shadow: 0 2px 8px rgba(100,116,139,.15) !important;
+}
+.statut-btn[data-statut="ABSENT"].is-active,
+.statut-btn[data-statut="ABSENT"]:hover:not(:disabled) {
+  background: #fff1f2 !important; border-color: #dc2626 !important; color: #dc2626 !important;
+  box-shadow: 0 2px 8px rgba(220,38,38,.18) !important;
+}
+.statut-btn[data-statut="CANCELLED"].is-active,
+.statut-btn[data-statut="CANCELLED"]:hover:not(:disabled) {
+  background: #f8fafc !important; border-color: #94a3b8 !important; color: #64748b !important;
+}
+
+/* ── Form helpers ─────────────────────────────────────────────────────────── */
+.field-label {
+  display: block; font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: #64748b; margin-bottom: .35rem;
+}
+
+/* Time grid */
+.time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.time-btn {
+  font-size: .78rem !important; padding: .25rem .2rem !important;
+  border-radius: 6px !important;
+  transition: all .15s cubic-bezier(.22,1,.36,1) !important;
+}
+.time-btn:not(.btn-primary):hover {
+  background: #eff6ff !important; border-color: #93c5fd !important;
+  color: #1d4ed8 !important; transform: translateY(-1px) !important;
+}
+.time-btn.btn-primary {
+  box-shadow: 0 2px 10px rgba(37,99,235,.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── Suggest chips ────────────────────────────────────────────────────────── */
+.suggest-row { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.suggest-label { font-size: .68rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+.suggest-chip {
+  display: inline-flex; align-items: center;
+  background: #f5f3ff; color: #6d28d9;
+  border: 1.5px solid #c4b5fd; border-radius: 99px;
+  padding: .28rem .85rem; font-size: .82rem; font-weight: 600;
+  cursor: pointer; transition: all .18s cubic-bezier(.22,1,.36,1);
+  animation: chipIn .2s cubic-bezier(.22,1,.36,1);
+}
+.suggest-chip:hover {
+  background: #7c3aed; color: #fff; border-color: #7c3aed;
+  transform: translateY(-2px); box-shadow: 0 4px 14px rgba(124,58,237,.28);
+}
+@keyframes chipIn {
+  from { opacity: 0; transform: scale(.85) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.suggest-skeleton {
+  height: 28px; width: 70px; border-radius: 99px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%; animation: shimmer 1.2s infinite;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+.selected-time-badge {
+  display: inline-block; margin-left: .5rem;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff; border-radius: 6px; padding: .05rem .5rem;
+  font-size: .65rem; font-weight: 700;
+  letter-spacing: normal; text-transform: none; vertical-align: middle;
+}
+
+/* ── Modal / off-canvas entry animations ─────────────────────────────────── */
+.modal-dialog { animation: modal-in .22s cubic-bezier(.22,1,.36,1); }
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0); }
+}
+
+.offcanvas.offcanvas-end.show { animation: panel-in .22s cubic-bezier(.22,1,.36,1); }
+@keyframes panel-in {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Status filter bar ────────────────────────────────────────────────────── */
+.agenda-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem 1.25rem;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.agenda-filter-bar::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .22rem .6rem; border-radius: 99px;
+  font-size: .72rem; font-weight: 600; white-space: nowrap;
+  border: 1.5px solid #e2e8f0; background: #f8fafc; color: #94a3b8;
+  cursor: pointer;
+  transition: all .15s cubic-bezier(.22,1,.36,1);
+  opacity: .55;
+}
+.filter-chip:hover:not(.is-active) { opacity: .8; transform: translateY(-1px); }
+.filter-chip.is-active { opacity: 1; }
+
+.filter-chip.is-active[data-statut="PLANNED"]   { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+.filter-chip.is-active[data-statut="CONFIRMED"] { background: #dcfce7; border-color: #86efac; color: #15803d; }
+.filter-chip.is-active[data-statut="WAITING"]   { background: #fef9c3; border-color: #fde047; color: #92400e; }
+.filter-chip.is-active[data-statut="DONE"]      { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
+.filter-chip.is-active[data-statut="ABSENT"]    { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+.filter-chip.is-active[data-statut="CANCELLED"] { background: #f8fafc; border-color: #e2e8f0; color: #64748b; }
+
+.filter-chip__count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; border-radius: 99px; padding: 0 4px;
+  font-size: .62rem; font-weight: 800;
+  background: rgba(0,0,0,.1); color: inherit;
+}
+
+.filter-total {
+  font-size: .72rem; font-weight: 600; color: #94a3b8; white-space: nowrap;
+}
+
+/* ── Edit off-canvas responsive width ────────────────────────────────────── */
+.offcanvas-appointments { width: 420px; }
+@media (max-width: 575.98px) {
+  .offcanvas-appointments { width: 100% !important; }
+}
+
+/* ── Modal: full-height scroll on small screens ───────────────────────────── */
+@media (max-width: 767.98px) {
+  .modal-dialog { margin: .5rem; }
+  .modal-dialog .modal-body { max-height: 72dvh; overflow-y: auto; }
+}
+
+/* ── Mobile ───────────────────────────────────────────────────────────────── */
+@media (max-width: 639px) {
+  .agenda-toolbar { padding: .5rem .75rem; flex-wrap: wrap; gap: .5rem; }
+  .agenda-toolbar__left  { width: 100%; }
+  .agenda-toolbar__right { flex-wrap: wrap; width: 100%; justify-content: space-between; }
+  .agenda-toolbar__new-label { display: none; }
+  .agenda-toolbar__new { padding: .35rem .5rem; }
+  .agenda-nav__btn { min-width: 44px; min-height: 44px; justify-content: center; }
+  .agenda-nav__range { min-width: 0; font-size: .74rem; padding: .3rem .4rem; }
+  .agenda-nav__btn--today { min-height: 44px; }
+  .filter-chip__label { display: none; }
+  .filter-chip { padding: .22rem .45rem; min-height: 36px; }
+}
+</style>

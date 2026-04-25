@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Amira — Decision Trees</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root{--bg:#f8fafc;--surface:#fff;--text:#0f172a;--muted:#64748b;--primary:#2563eb;--accent:#7c3aed;--border:#e2e8f0;--radius:14px;--font:'Inter','Segoe UI',system-ui,sans-serif}
+  *{box-sizing:border-box;margin:0}
+  body{font-family:var(--font);background:var(--bg);color:var(--text)}
+  .hero{background:linear-gradient(135deg,#b45309,#f59e0b);color:white;padding:48px 40px;text-align:center}
+  .hero h1{font-size:32px;font-weight:800;margin-bottom:8px}
+  .hero p{font-size:16px;opacity:.85}
+  .hero .badge{display:inline-block;background:rgba(255,255,255,.15);padding:4px 14px;border-radius:20px;font-size:12px;margin-top:12px}
+  .container{max-width:1100px;margin:0 auto;padding:40px 24px}
+  h2{font-size:22px;font-weight:700;margin:40px 0 16px;display:flex;align-items:center;gap:10px}
+  h2 .icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  p,li{font-size:14px;line-height:1.7;color:var(--muted)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .mermaid{margin:20px 0}
+  .callout{border-left:3px solid var(--accent);padding:12px 16px;margin:16px 0;background:#faf5ff;border-radius:0 8px 8px 0}
+  .callout strong{color:var(--text)}
+  .divider{height:1px;background:var(--border);margin:40px 0}
+  nav{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 24px;z-index:100;display:flex;gap:20px;align-items:center}
+  nav a{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 0;border-bottom:2px solid transparent}
+  nav a:hover{color:var(--text)}
+  nav a.active{color:var(--primary);border-bottom-color:var(--primary)}
+  nav .logo{font-weight:700;color:var(--text);font-size:14px;margin-right:16px}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">Dr. Amira Docs</span>
+  <a href="architecture.html">Architecture</a>
+  <a href="flow.html">Data Flow</a>
+  <a href="decisions.html" class="active">Decisions</a>
+  <a href="ui-interactions.html">UI Interactions</a>
+</nav>
+
+<div class="hero">
+  <h1>Decision Trees</h1>
+  <p>When does Amira whisper, suggest, or talk?</p>
+  <div class="badge">DMN 1.4 Decision Logic</div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#eff6ff;color:#2563eb">1</span> UI Mode Decision</h2>
+
+<p>Every trigger in the app goes through this decision to determine how Amira responds:</p>
+
+<div class="mermaid">
+flowchart TD
+    TRIGGER["Trigger event<br/><i>doctor types, clicks, navigates</i>"] --> TYPE{"What type<br/>of trigger?"}
+
+    TYPE -->|"Auto (field change,<br/>page load)"| AUTO{"Is it a simple<br/>data lookup?"}
+    TYPE -->|"Doctor clicks quick<br/>action button"| SUGGEST_MODE["MODE: SUGGEST<br/><i>Slide-up card with action buttons</i>"]
+    TYPE -->|"Doctor opens Amira<br/>panel or Ctrl+Space"| TALK_MODE["MODE: TALK<br/><i>Full conversation panel</i>"]
+
+    AUTO -->|"Yes (abnormal vital,<br/>overdue follow-up)"| WHISPER_MODE["MODE: WHISPER<br/><i>Inline hint, 12px, subtle</i>"]
+    AUTO -->|"No (needs reasoning,<br/>drug interaction)"| SUGGEST_MODE
+
+    WHISPER_MODE --> SEARCH_LIGHT["Search L2 only<br/>(structured rules)"]
+    SUGGEST_MODE --> SEARCH_FULL["Search L1 + L2<br/>(full RAG + rules)"]
+    TALK_MODE --> SEARCH_FULL
+
+    SEARCH_LIGHT --> LLM_SHORT["LLM: short response<br/>max 50 tokens"]
+    SEARCH_FULL --> LLM_FULL["LLM: full response<br/>streaming SSE"]
+
+    style WHISPER_MODE fill:#ecfdf5,stroke:#059669
+    style SUGGEST_MODE fill:#eff6ff,stroke:#2563eb
+    style TALK_MODE fill:#f5f3ff,stroke:#7c3aed
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#ecfdf5;color:#059669">2</span> Per-Screen Trigger Map</h2>
+
+<h3>Consultation Screen</h3>
+<div class="mermaid">
+flowchart LR
+    subgraph TRIGGERS["Doctor actions"]
+        V["Enters vital signs"]
+        M["Types motif"]
+        D["Types diagnostic"]
+        T["Asks for treatment"]
+    end
+
+    V --> V_DEC{"Vital abnormal?"}
+    V_DEC -->|"TA>140/90, T>38.5,<br/>Poids trend up"| W1["WHISPER<br/>'HTA grade 2'"]
+    V_DEC -->|Normal| NOTHING1["No action"]
+
+    M --> S1["SUGGEST<br/>'Diagnostics &agrave; &eacute;voquer:<br/>...'"]
+
+    D --> W2["WHISPER<br/>CIM-10 code autocomplete"]
+
+    T --> S2["SUGGEST<br/>'Plan de traitement<br/>sugg&eacute;r&eacute;: ...'"]
+
+    style W1 fill:#ecfdf5,stroke:#059669
+    style W2 fill:#ecfdf5,stroke:#059669
+    style S1 fill:#eff6ff,stroke:#2563eb
+    style S2 fill:#eff6ff,stroke:#2563eb
+    style NOTHING1 fill:#f8fafc,stroke:#e2e8f0
+</div>
+
+<h3>Ordonnance Screen</h3>
+<div class="mermaid">
+flowchart LR
+    ADD["Doctor adds<br/>a medication"] --> CHECK{"Check against<br/>L1+L2 data"}
+
+    CHECK --> INT{"Interaction<br/>found?"}
+    CHECK --> DUP{"Duplicate<br/>therapy?"}
+    CHECK --> DOS{"Dosage<br/>available?"}
+
+    INT -->|"Grave"| S_RED["SUGGEST (red)<br/>'Interaction grave<br/>[Remplacer]'"]
+    INT -->|"Mod&eacute;r&eacute;e"| S_AMBER["SUGGEST (amber)<br/>'Interaction mod&eacute;r&eacute;e<br/>[Garder] [Remplacer]'"]
+    INT -->|"Aucune"| OK1["No action"]
+
+    DUP -->|"Yes"| W_DUP["WHISPER<br/>'D&eacute;j&agrave; sous ce m&eacute;dicament'"]
+    DUP -->|"No"| OK2["No action"]
+
+    DOS -->|"Found in L1"| W_DOS["WHISPER<br/>'500mg x3/j, 7j<br/>(Dorosz p.XX)'"]
+    DOS -->|"Not found"| OK3["No action"]
+
+    style S_RED fill:#fef2f2,stroke:#dc2626
+    style S_AMBER fill:#fffbeb,stroke:#b45309
+    style W_DUP fill:#ecfdf5,stroke:#059669
+    style W_DOS fill:#ecfdf5,stroke:#059669
+</div>
+
+<h3>Patient File Screen</h3>
+<div class="mermaid">
+flowchart LR
+    OPEN["Doctor opens<br/>patient file"] --> ANALYZE["Amira analyzes:<br/>history, meds, last labs"]
+
+    ANALYZE --> ALERTS{"Any alerts?"}
+
+    ALERTS -->|"Overdue follow-up"| W_FU["WHISPER<br/>'HbA1c non contr&ocirc;l&eacute;<br/>depuis 8 mois'"]
+    ALERTS -->|"Rising trend"| W_TR["WHISPER<br/>'Poids: 89&rarr;92&rarr;94 &uarr;'"]
+    ALERTS -->|"Missing data"| W_MD["WHISPER<br/>'Aucune allergie<br/>enregistr&eacute;e'"]
+    ALERTS -->|"Nothing"| OK["No action"]
+
+    style W_FU fill:#fef2f2,stroke:#dc2626
+    style W_TR fill:#fffbeb,stroke:#b45309
+    style W_MD fill:#eff6ff,stroke:#2563eb
+</div>
+
+<h3>Queue Screen</h3>
+<div class="mermaid">
+flowchart LR
+    JOIN["Patient joins<br/>with motif"] --> TRIAGE{"Motif contains<br/>severity keyword?"}
+
+    TRIAGE -->|"'douleur thoracique'<br/>'dyspn&eacute;e', 'AVC'"| S_URG["SUGGEST (red)<br/>'URGENCE — Passer<br/>en priorit&eacute;'<br/>[Accepter]"]
+    TRIAGE -->|"Normal motif"| OK["No action"]
+
+    style S_URG fill:#fef2f2,stroke:#dc2626
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#f5f3ff;color:#7c3aed">3</span> Response Trust Decision</h2>
+
+<div class="mermaid">
+flowchart TD
+    REFS["References found<br/>from L1 + L2"] --> QUALITY{"How many relevant<br/>chunks found?"}
+
+    QUALITY -->|"3+ high-similarity<br/>chunks"| HIGH["HIGH CONFIDENCE<br/>Answer normally<br/>Cite sources"]
+    QUALITY -->|"1-2 partial<br/>matches"| MED["MEDIUM CONFIDENCE<br/>Answer + warn:<br/>'Information partielle'"]
+    QUALITY -->|"0 chunks"| LOW["NO DATA<br/>'Je n'ai pas cette info<br/>dans mes r&eacute;f&eacute;rences.<br/>Ajoute le document.'"]
+
+    HIGH --> SHOW["Show response"]
+    MED --> SHOW
+    LOW --> SHOW
+
+    SHOW --> CITE{"Has source?"}
+    CITE -->|Yes| BADGE_SRC["Source badge:<br/>'Dorosz p.34' or<br/>'CIM-10' or 'MSPRH'"]
+    CITE -->|No| BADGE_WARN["Warning badge:<br/>'Aucune r&eacute;f&eacute;rence'"]
+
+    style HIGH fill:#ecfdf5,stroke:#059669
+    style MED fill:#fffbeb,stroke:#b45309
+    style LOW fill:#fef2f2,stroke:#dc2626
+</div>
+
+<div class="callout">
+  <strong>Key principle:</strong> Amira never says "I think" or "In my opinion" — she always says "D'apr&egrave;s [source]" or "Je n'ai pas cette information." The trust is in the documents, not in the AI.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#fffbeb;color:#b45309">4</span> Model Selection Decision</h2>
+
+<div class="mermaid">
+flowchart TD
+    START["App startup"] --> RAM{"Available RAM?"}
+
+    RAM -->|"&ge; 12 GB"| NEMO["Load Mistral Nemo 12B<br/>Best French + medical quality<br/>~7GB model, ~10GB RAM"]
+    RAM -->|"8-12 GB"| BIO["Load BioMistral 7B<br/>Good medical, good French<br/>~4.5GB model, ~6GB RAM"]
+    RAM -->|"&lt; 8 GB"| MISTRAL["Load Mistral 7B<br/>Lighter, still good French<br/>~4.5GB model, ~5GB RAM"]
+
+    NEMO --> GPU{"GPU available?"}
+    BIO --> GPU
+    MISTRAL --> GPU
+
+    GPU -->|"CUDA / Metal / Vulkan"| FAST["GPU acceleration<br/>~5 tokens/sec &rarr; ~20 tokens/sec"]
+    GPU -->|"CPU only"| SLOW["CPU inference<br/>~3-5 tokens/sec<br/>Still usable"]
+
+    style NEMO fill:#ecfdf5,stroke:#059669
+    style BIO fill:#eff6ff,stroke:#2563eb
+    style MISTRAL fill:#fffbeb,stroke:#b45309
+</div>
+
+<div class="divider"></div>
+<p style="text-align:center;font-size:12px;color:var(--muted)">Dr. Amira Decision Trees — Dawini Desktop — April 2026</p>
+
+</div>
+
+<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral', themeVariables: { fontSize: '12px' } });</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<h4 class="fw-bold mb-1">Param&egrave;tres</h4>
+<p class="text-muted mb-4" style="font-size:13px">G&eacute;rez votre cabinet, votre licence et Dr. Amira</p>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <button class="nav-link" [class.active]="tab() === 'cabinet'" (click)="tab.set('cabinet')">
+      <i class="bi bi-hospital me-1"></i>Cabinet
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" [class.active]="tab() === 'amira'" (click)="tab.set('amira')">
+      <i class="bi bi-stars me-1"></i>Dr. Amira
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" [class.active]="tab() === 'license'" (click)="tab.set('license')">
+      <i class="bi bi-key me-1"></i>Licence
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" [class.active]="tab() === 'app'" (click)="tab.set('app')">
+      <i class="bi bi-info-circle me-1"></i>Application
+    </button>
+  </li>
+</ul>
+
+<!-- Cabinet Settings Tab -->
+@if (tab() === 'cabinet') {
+  @if (loading()) {
+    <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+  } @else {
+    <div class="cm-card p-4">
+      @if (error()) {
+        <div class="alert alert-danger">{{ error() }}</div>
+      }
+      @if (saved()) {
+        <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>Enregistr&eacute; avec succ&egrave;s</div>
+      }
+
+      <h6 class="fw-bold mb-3">Informations du m&eacute;decin</h6>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="form-label">Nom du cabinet</label>
+          <input type="text" class="form-control" [(ngModel)]="form.cabinetName" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Pr&eacute;nom</label>
+          <input type="text" class="form-control" [(ngModel)]="form.doctorFirstName" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Nom</label>
+          <input type="text" class="form-control" [(ngModel)]="form.doctorLastName" />
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="form-label">Sp&eacute;cialit&eacute;</label>
+          <input type="text" class="form-control" [(ngModel)]="form.specialty" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">N&deg; Ordre</label>
+          <input type="text" class="form-control" [(ngModel)]="form.ordreNumber" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">T&eacute;l&eacute;phone</label>
+          <input type="text" class="form-control" [(ngModel)]="form.phone" />
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="form-label">Adresse</label>
+          <input type="text" class="form-control" [(ngModel)]="form.address" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Wilaya</label>
+          <input type="text" class="form-control" [(ngModel)]="form.wilaya" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Dur&eacute;e consultation</label>
+          <select class="form-select" [(ngModel)]="form.defaultConsultationDuration">
+            @for (d of durations; track d) {
+              <option [value]="d">{{ d }} min</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <h6 class="fw-bold mb-3">Types de consultation</h6>
+      @for (ct of form.consultationTypes; track $index; let i = $index) {
+        <div class="row g-2 mb-2">
+          <div class="col">
+            <input type="text" class="form-control" [(ngModel)]="ct.label" placeholder="Libell&eacute;" />
+          </div>
+          <div class="col-auto" style="width: 140px">
+            <div class="input-group">
+              <input type="number" class="form-control" [(ngModel)]="ct.fee" min="0" />
+              <span class="input-group-text">DZD</span>
+            </div>
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-outline-danger btn-sm" (click)="removeConsultationType(i)"
+                    [disabled]="form.consultationTypes.length <= 1">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      }
+      <button class="btn btn-outline-primary btn-sm mt-1" (click)="addConsultationType()">
+        <i class="bi bi-plus-lg me-1"></i>Ajouter
+      </button>
+
+      <div class="mt-4 pt-3 border-top">
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving()">
+          @if (saving()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  }
+}
+
+<!-- Amira Tab -->
+@if (tab() === 'amira') {
+  <div class="cm-card p-4 mb-4">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:white;font-size:16px;font-weight:700">A</div>
+      <div>
+        <h6 class="fw-bold mb-0">Dr. Amira</h6>
+        <span class="text-muted" style="font-size:12px">Votre cons&oelig;ur num&eacute;rique</span>
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 mb-4">
+      <span class="badge" [class.bg-success]="amiraLoaded()" [class.bg-secondary]="!amiraLoaded()">
+        {{ amiraLoaded() ? 'Mod&egrave;le charg&eacute;' : 'Aucun mod&egrave;le' }}
+      </span>
+      @if (amiraModel()) {
+        <span class="text-muted" style="font-size:12px">{{ amiraModel() }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="cm-card p-4">
+    <app-amira-library />
+  </div>
+}
+
+<!-- License Tab -->
+@if (tab() === 'license') {
+  <div class="cm-card p-4">
+    <h6 class="fw-bold mb-3">Statut de la licence</h6>
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <span class="badge fs-6"
+            [class.bg-success]="licenseState() === 'active'"
+            [class.bg-warning]="licenseState() === 'trial'"
+            [class.bg-danger]="licenseState() === 'expired'">
+        @switch (licenseState()) {
+          @case ('active')  { Actif }
+          @case ('trial')   { Essai gratuit }
+          @case ('expired') { Expir&eacute; }
+        }
+      </span>
+      @if (licenseState() === 'trial') {
+        <span class="text-muted">{{ licenseDays() }} jour(s) restant(s)</span>
+      }
+    </div>
+
+    <h6 class="fw-bold mb-3">Activer la licence</h6>
+    @if (licenseOk()) {
+      <div class="alert alert-success">{{ licenseOk() }}</div>
+    }
+    @if (licenseError()) {
+      <div class="alert alert-danger">{{ licenseError() }}</div>
+    }
+
+    <div style="max-width: 500px">
+      <div class="mb-3">
+        <label class="form-label">Cl&eacute; de licence</label>
+        <input type="text" class="form-control font-monospace"
+               [(ngModel)]="licenseKey"
+               placeholder="DAWINI-DESKTOP-2026" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Code partenaire <span class="text-muted">(optionnel)</span></label>
+        <input type="text" class="form-control"
+               [(ngModel)]="referralCode"
+               placeholder="Ex: AHMED50" />
+      </div>
+      <button class="btn btn-primary" (click)="activateLicense()" [disabled]="activating()">
+        @if (activating()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        Activer
+      </button>
+    </div>
+  </div>
+}
+
+<!-- App Info Tab -->
+@if (tab() === 'app') {
+  <div class="cm-card p-4">
+    <h6 class="fw-bold mb-3">Informations</h6>
+
+    <table class="table table-borderless" style="max-width: 400px">
+      <tr>
+        <td class="text-muted">Version</td>
+        <td class="fw-semibold">v{{ appVersion() }}</td>
+      </tr>
+      <tr>
+        <td class="text-muted">Plateforme</td>
+        <td class="fw-semibold">Desktop (Electron)</td>
+      </tr>
+      <tr>
+        <td class="text-muted">Base de donn&eacute;es</td>
+        <td class="fw-semibold">SQLite (locale)</td>
+      </tr>
+    </table>
+
+    <button class="btn btn-outline-primary mt-3" (click)="checkForUpdates()">
+      <i class="bi bi-arrow-repeat me-1"></i>V&eacute;rifier les mises &agrave; jour
+    </button>
+  </div>
+}

@@ -1,0 +1,107 @@
+@if (loading()) {
+  <app-loading-spinner />
+} @else if (error()) {
+  <div class="text-center py-5">
+    <i class="bi bi-exclamation-triangle fs-2 text-warning d-block mb-2"></i>
+    <p class="text-muted">{{ error() }}</p>
+    <button class="btn btn-sm btn-outline-primary" (click)="goBack()">Retour à la liste</button>
+  </div>
+} @else if (ordonnance(); as o) {
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-secondary" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div>
+        <h5 class="mb-0 fw-semibold">{{ o.numero }}</h5>
+        <p class="text-muted small mb-0">{{ formatDate(o.dateEmission || o.createdAt) }}</p>
+      </div>
+      <app-status-badge [status]="o.statut" />
+    </div>
+
+    <div class="d-flex gap-2">
+      @if (canEdit()) {
+        <button class="btn btn-sm btn-outline-primary" (click)="goEdit()">
+          <i class="bi bi-pencil me-1"></i>Modifier
+        </button>
+      }
+      @if (canAnnul()) {
+        <button class="btn btn-sm btn-outline-danger" (click)="showAnnulModal.set(true)" [disabled]="annulling()">
+          <i class="bi bi-x-circle me-1"></i>Annuler
+        </button>
+      }
+      <button class="btn btn-sm btn-outline-secondary" (click)="goPrint()">
+        <i class="bi bi-printer me-1"></i>Imprimer
+      </button>
+    </div>
+  </div>
+
+  <!-- Patient info -->
+  <div class="cm-card mb-3">
+    <div class="d-flex justify-content-between">
+      <div>
+        <span class="text-muted small">Patient</span>
+        <div class="fw-semibold">{{ o.patient?.firstName }} {{ o.patient?.lastName }}</div>
+      </div>
+      <div class="text-end">
+        <span class="text-muted small">Date d'émission</span>
+        <div class="fw-medium small">{{ formatDate(o.dateEmission || o.createdAt) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medication lines -->
+  <div class="cm-card">
+    <h6 class="fw-semibold mb-3"><i class="bi bi-capsule me-1"></i>Médicaments ({{ (o.lignes?.length ?? 0) }})</h6>
+
+    @if ((o.lignes?.length ?? 0) > 0) {
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Médicament</th>
+              <th>Dosage</th>
+              <th>Fréquence</th>
+              <th>Durée</th>
+              <th>Instructions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of o.lignes; track l.id; let i = $index) {
+              <tr>
+                <td class="text-muted">{{ i + 1 }}</td>
+                <td class="fw-medium">{{ l.medicament }}</td>
+                <td class="small">{{ l.dosage }}</td>
+                <td class="small">{{ l.frequence }}</td>
+                <td class="small">{{ l.duree }}</td>
+                <td class="text-muted small">{{ l.instructions || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="text-muted small mb-0">Aucun médicament</p>
+    }
+  </div>
+
+  @if (!isSameDay() && isActive()) {
+    <div class="alert alert-info small mt-3 mb-0">
+      <i class="bi bi-info-circle me-1"></i>
+      La modification n'est possible que le jour de création de l'ordonnance.
+    </div>
+  }
+
+  <!-- Annul confirmation modal -->
+  <app-confirm-modal
+    [visible]="showAnnulModal()"
+    title="Annuler l'ordonnance"
+    message="Cette ordonnance sera marquée comme annulée. Continuer ?"
+    confirmLabel="Annuler l'ordonnance"
+    (confirm)="confirmAnnul()"
+    (cancel)="showAnnulModal.set(false)"
+  />
+}

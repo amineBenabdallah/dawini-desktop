@@ -1,0 +1,1319 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dawini — Prototype</title>
+<style>
+  :root {
+    --primary:#2563eb; --primary-light:#eff6ff; --primary-dark:#1d4ed8; --primary-glow: rgba(37,99,235,.15);
+    --accent:#8b5cf6;
+    --success:#10b981; --success-light:#ecfdf5;
+    --warning:#f59e0b; --warning-light:#fffbeb;
+    --danger:#ef4444; --danger-light:#fef2f2;
+    --info:#06b6d4;
+    --surface:#fff; --bg:#f8fafc; --bg-subtle:#f1f5f9;
+    --text:#0f172a; --text-sec:#475569; --text-mut:#94a3b8; --text-dis:#cbd5e1;
+    --border:#e2e8f0; --border-light:#f1f5f9;
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.03);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.02);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -2px rgba(0,0,0,.03);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.05), 0 4px 6px -4px rgba(0,0,0,.03);
+    --shadow-xl: 0 20px 25px -5px rgba(0,0,0,.06), 0 8px 10px -6px rgba(0,0,0,.04);
+    --r-xs:6px; --r-sm:8px; --r:12px; --r-lg:16px; --r-xl:20px; --r-full:9999px;
+    --space-page:24px;
+    --ease: cubic-bezier(.4,0,.2,1);
+    --ease-bounce: cubic-bezier(.34,1.56,.64,1);
+    --dur:.2s; --dur-slow:.35s;
+    --sidebar-w:240px;
+    --titlebar-h:36px;
+    --header-h:56px;
+    --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13.5px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+
+  /* Page primitives */
+  .page { display: none; }
+  .page-active { display: block; }
+
+  /* ── Title bar (Electron desktop chrome) ── */
+  .titlebar { height: var(--titlebar-h); background: rgba(255,255,255,.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-light); display: flex; align-items: center; padding: 0 12px; position: fixed; top:0; left:0; right:0; z-index:9999; }
+  .titlebar-icon { width:16px; height:16px; margin-right:8px; border-radius:4px; background: linear-gradient(135deg, var(--primary), var(--accent)); display:inline-flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:700; }
+  .titlebar-title { font-size:11.5px; font-weight:600; color: var(--text-mut); letter-spacing: .2px; }
+  .titlebar-controls { margin-left:auto; display:flex; gap:2px; }
+  .titlebar-controls button { width:32px; height:24px; border:none; background:transparent; color:var(--text-mut); font-size:11px; border-radius:var(--r-xs); cursor:pointer; display:grid; place-items:center; }
+  .titlebar-controls button:hover { background: var(--bg-subtle); color: var(--text); }
+
+  /* ── Sidebar ── */
+  .sidebar { width: var(--sidebar-w); height: calc(100vh - var(--titlebar-h)); margin-top: var(--titlebar-h); background: rgba(255,255,255,.78); backdrop-filter: blur(30px) saturate(200%); border-right: 1px solid rgba(226,232,240,.6); position: fixed; top:0; left:0; z-index:100; display: flex; flex-direction: column; }
+  .sidebar-brand { display:flex; align-items:center; gap:.6rem; padding: 16px 18px 12px; font-size: 15px; }
+  .sidebar-brand-logo { width:28px; height:28px; border-radius:8px; background: linear-gradient(135deg, var(--primary), var(--accent)); color:#fff; display:grid; place-items:center; font-weight:800; font-size:13px; letter-spacing: .02em; }
+  .sidebar-brand-text { font-weight: 700; color: var(--primary); }
+  .sidebar-nav { padding: 4px 10px; flex:1; overflow-y: auto; }
+  .nav-link { display:flex; align-items:center; gap:10px; padding: 8px 12px; margin: 1px 0; border-radius: var(--r-sm); color: var(--text-sec); font-size: 13px; font-weight: 500; transition: all .15s var(--ease); position: relative; cursor: pointer; }
+  .nav-link i { font-size: 15px; width:20px; text-align:center; opacity:.7; }
+  .nav-link:hover { background: rgba(37,99,235,.05); color: var(--primary); }
+  .nav-link:hover i { opacity:1; }
+  .nav-link.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+  .nav-link.active i { opacity: 1; }
+  .nav-link.active::before { content:''; position:absolute; left:-2px; top:25%; height:50%; width:3px; border-radius:0 3px 3px 0; background: var(--primary); }
+  .nav-divider { border-top: 1px solid var(--border); margin: 8px 12px; }
+  .sidebar-footer { padding: 14px; border-top: 1px solid var(--border-light); display:flex; align-items:center; gap:10px; }
+  .avatar { width:34px; height:34px; border-radius:50%; background: var(--primary); color:#fff; display:grid; place-items:center; font-size:13px; font-weight:700; flex-shrink:0; }
+  .user-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .user-role { font-size: 11.5px; color: var(--text-mut); }
+
+  /* ── Main area ── */
+  .main { margin-left: var(--sidebar-w); min-height: calc(100vh - var(--titlebar-h)); margin-top: var(--titlebar-h); display:flex; flex-direction:column; }
+  .app-header { height: var(--header-h); background: rgba(255,255,255,.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-light); display:flex; align-items:center; padding: 0 var(--space-page); gap: 1rem; position: sticky; top: var(--titlebar-h); z-index: 99; }
+  .app-header h1 { font-size: 18px; font-weight: 700; margin: 0; color: var(--text); }
+  .app-header .sub { font-size: 12.5px; color: var(--text-mut); }
+  .app-content { padding: var(--space-page); flex:1; }
+
+  /* Standalone (login) */
+  .standalone { min-height: 100vh; margin-top: var(--titlebar-h); display:grid; place-items:center; padding: 2rem; background: linear-gradient(135deg, #eff6ff 0%, #faf5ff 100%); }
+
+  /* ── Buttons ── */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: var(--r-sm); font-weight: 500; font-size: 13px; border: none; cursor: pointer; transition: all var(--dur) var(--ease); font-family: inherit; background: transparent; color: inherit; white-space: nowrap; }
+  .btn:hover:not(:disabled) { transform: translateY(-.5px); }
+  .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 1px 3px rgba(37,99,235,.2); }
+  .btn-primary:hover { box-shadow: 0 3px 12px rgba(37,99,235,.25); }
+  .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--border); }
+  .btn-outline:hover { background: var(--primary-light); border-color: var(--primary); }
+  .btn-light { background: #fff; color: var(--text-sec); border: 1px solid var(--border); box-shadow: var(--shadow-xs); }
+  .btn-light:hover { background: var(--bg-subtle); }
+  .btn-success { background: var(--success); color:#fff; }
+  .btn-danger { background: var(--danger); color:#fff; }
+  .btn-sm { font-size: 12px; padding: 5px 12px; border-radius: var(--r-xs); }
+  .btn-lg { font-size: 14px; padding: 10px 22px; border-radius: var(--r); }
+  .btn-block { display: flex; width: 100%; justify-content: center; }
+
+  /* ── Form controls ── */
+  .form-control, .form-select, textarea { border-radius: 10px; border: 1.5px solid var(--border); padding: 10px 14px; font-size: 13.5px; color: var(--text); background: #fff; outline: none; width: 100%; font-family: inherit; transition: border-color .2s var(--ease), box-shadow .2s var(--ease); }
+  .form-control::placeholder, textarea::placeholder { color: #cbd5e1; }
+  .form-control:focus, .form-select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+  .form-label { display:block; font-size: 12.5px; font-weight: 600; color: var(--text-sec); margin-bottom: 6px; }
+  .form-group { margin-bottom: 16px; }
+  .field-row { display: grid; gap: 12px; }
+  .field-row.cols-2 { grid-template-columns: 1fr 1fr; }
+
+  /* Search bar with icon */
+  .search-wrap { position: relative; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-mut); }
+  .search-wrap input { padding-left: 38px; }
+
+  /* ── Cards ── */
+  .card { background: var(--surface); border-radius: var(--r-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+  .card-body { padding: 20px; }
+  .card-head { padding: 16px 20px; border-bottom: 1px solid var(--border-light); display:flex; align-items: center; justify-content: space-between; }
+  .card-head h3 { font-size: 14px; font-weight: 600; margin: 0; color: var(--text); }
+
+  /* Stat cards */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat { background: #fff; border-radius: var(--r-lg); border: 1px solid var(--border); padding: 18px 20px; box-shadow: var(--shadow-xs); transition: all var(--dur) var(--ease); }
+  .stat:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .stat-row { display: flex; align-items: center; gap: 14px; }
+  .stat-icon { width: 44px; height: 44px; border-radius: var(--r); display: grid; place-items: center; flex-shrink: 0; font-size: 22px; }
+  .stat-icon.primary { background: var(--primary-light); color: var(--primary); }
+  .stat-icon.success { background: var(--success-light); color: var(--success); }
+  .stat-icon.warning { background: var(--warning-light); color: var(--warning); }
+  .stat-icon.danger { background: var(--danger-light); color: var(--danger); }
+  .stat-label { font-size: 12px; color: var(--text-mut); font-weight: 500; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.1; margin-top: 2px; }
+  .stat-delta { font-size: 11.5px; color: var(--success); font-weight: 500; margin-top: 3px; }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--text-mut); padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); text-align: left; white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border-light); color: var(--text); }
+  tbody tr { transition: background .12s; cursor: pointer; }
+  tbody tr:hover { background: rgba(37,99,235,.02); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Badges ── */
+  .badge { display: inline-flex; padding: 3px 10px; border-radius: var(--r-full); font-size: 11px; font-weight: 600; letter-spacing: .2px; }
+  .badge-primary { background: var(--primary-light); color: var(--primary); }
+  .badge-success { background: var(--success-light); color: var(--success); }
+  .badge-warning { background: var(--warning-light); color: #b45309; }
+  .badge-danger { background: var(--danger-light); color: var(--danger); }
+  .badge-secondary { background: var(--bg-subtle); color: var(--text-mut); }
+
+  /* ── Page header ── */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+  .page-header h2 { font-size: 20px; font-weight: 700; color: var(--text); margin: 0; }
+  .page-header .page-sub { font-size: 13px; color: var(--text-mut); margin-top: 2px; }
+
+  /* ── Agenda (proper week view with time-based events) ── */
+  .agenda-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+  .agenda-range { font-size: 14px; font-weight: 600; color: var(--text); padding: 0 10px; }
+  .agenda-wrap { background: #fff; border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+  .agenda-header { display: grid; grid-template-columns: 56px repeat(5, 1fr); border-bottom: 2px solid var(--border); background: #fff; }
+  .agenda-header .dow { padding: 10px 6px 8px; text-align: center; border-right: 1px solid var(--border-light); }
+  .agenda-header .dow:last-child { border-right: none; }
+  .dow-name { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-mut); letter-spacing: .08em; }
+  .dow-num { margin-top: 4px; display: inline-grid; place-items: center; width: 28px; height: 28px; font-size: 13px; font-weight: 600; color: var(--text-sec); border-radius: 50%; }
+  .dow.today .dow-num { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,.3); }
+  .dow.today .dow-name { color: var(--primary); }
+  /* Body grid: one row = 30-min slot = 24px tall */
+  .agenda-body { display: grid; grid-template-columns: 56px repeat(5, 1fr); position: relative; }
+  .time-col { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+  .time-slot { height: 48px; font-size: 10px; color: var(--text-mut); text-align: right; padding: 0 6px; position: relative; top: -6px; font-weight: 600; }
+  .day-col { border-right: 1px solid var(--border-light); position: relative; background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 47px, var(--border-light) 47px, var(--border-light) 48px); }
+  .day-col:last-child { border-right: none; }
+  .day-col.today { background-color: rgba(37,99,235,.025); }
+  .evt { position: absolute; left: 3px; right: 3px; border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 600; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.12); overflow: hidden; cursor: pointer; transition: transform .15s; }
+  .evt:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,.18); z-index: 2; }
+  .evt-time { font-size: 10px; opacity: .9; font-weight: 500; margin-top: 1px; }
+  .evt.blue  { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+  .evt.purple{ background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+  .evt.green { background: linear-gradient(135deg, #10b981, #34d399); }
+  .evt.amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+  .evt.cyan  { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+  .evt.rose  { background: linear-gradient(135deg, #f43f5e, #fb7185); }
+
+  /* ── Modal ── */
+  .backdrop { position: fixed; inset: 0; background: rgba(15,23,42,.3); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 500; padding: 20px; }
+  .backdrop.active { display: flex; }
+  .modal { background: #fff; border-radius: var(--r-xl); box-shadow: var(--shadow-xl); max-width: 560px; width: 100%; max-height: 90vh; overflow: auto; animation: modalIn .25s var(--ease-bounce); }
+  .modal-head { padding: 18px 24px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; }
+  .modal-head h3 { font-size: 16px; font-weight: 600; margin: 0; }
+  .modal-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: var(--text-mut); cursor: pointer; font-size: 18px; }
+  .modal-close:hover { background: var(--bg-subtle); color: var(--text); }
+  .modal-body { padding: 24px; }
+  .modal-foot { padding: 14px 24px; border-top: 1px solid var(--border-light); display: flex; justify-content: flex-end; gap: 10px; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+  /* ── Loading overlay ── */
+  .overlay { position: fixed; inset: 0; background: rgba(248,250,252,.8); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+  .overlay.active { display: flex; }
+  .overlay-card { background: #fff; padding: 2rem 2.5rem; border-radius: var(--r-xl); text-align: center; box-shadow: var(--shadow-xl); max-width: 320px; }
+  .spinner { width: 34px; height: 34px; border-radius: 999px; border: 3px solid var(--bg-subtle); border-top-color: var(--primary); animation: spin .85s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .overlay-title { font-size: 14px; font-weight: 600; margin: 0 0 4px; color: var(--text); }
+  .overlay-sub { font-size: 12.5px; color: var(--text-mut); margin: 0; }
+
+  /* ── Patient-facing waiting room screen ── */
+  .pvw-phone { background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); border-radius: var(--r-xl); padding: 32px 28px; color: #fff; min-width: 320px; max-width: 360px; text-align: center; position: relative; overflow: hidden; }
+  .pvw-phone::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(37,99,235,.3), transparent 70%); pointer-events: none; }
+  .pvw-brand { font-size: 13px; color: #94a3b8; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; margin-bottom: 24px; position: relative; }
+  .pvw-live { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(16,185,129,.15); color: #34d399; border-radius: 999px; font-size: 11px; font-weight: 600; margin-bottom: 16px; position: relative; }
+  .pvw-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,.25); animation: live-pulse 2s ease-in-out infinite; }
+  .pvw-ticket-label { font-size: 12px; color: #cbd5e1; margin-bottom: 6px; position: relative; }
+  .pvw-ticket { font-size: 72px; font-weight: 800; letter-spacing: -.03em; line-height: 1; background: linear-gradient(135deg, #60a5fa, #c4b5fd); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; position: relative; }
+  .pvw-name { font-size: 17px; font-weight: 600; margin-bottom: 28px; position: relative; }
+  .pvw-position { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px 16px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; position: relative; }
+  .pvw-pos-label { font-size: 10.5px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  .pvw-pos-val { font-size: 26px; font-weight: 800; color: #fff; line-height: 1.1; margin-top: 3px; }
+  .pvw-doctor { margin-top: 20px; font-size: 12.5px; color: #94a3b8; position: relative; }
+
+  /* ── Queue — stats + lanes ── */
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px rgba(16,185,129,.2); margin-left: 8px; vertical-align: middle; animation: live-pulse 2s ease-in-out infinite; }
+  @keyframes live-pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(16,185,129,.2); } 50% { box-shadow: 0 0 0 8px rgba(16,185,129,.04); } }
+  .q-stats-bar { display: flex; align-items: center; background: #fff; border: 1px solid var(--border); border-radius: var(--r); padding: 10px 16px; margin-bottom: 16px; gap: 14px; }
+  .q-stat { display: flex; align-items: center; gap: 8px; }
+  .q-stat-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 0 3px rgba(245,158,11,.2); }
+  .q-stat-ic { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-size: 13px; }
+  .q-stat-ic.primary { background: var(--primary-light); color: var(--primary); }
+  .q-stat-ic.accent { background: #f3e8ff; color: var(--accent); }
+  .q-stat-ic.success { background: var(--success-light); color: var(--success); }
+  .q-stat-value { font-size: 17px; font-weight: 700; color: var(--text); }
+  .q-stat-label { font-size: 12.5px; color: var(--text-sec); }
+  .q-stat-sep { width: 1px; height: 20px; background: var(--border); }
+
+  .queue-current { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); color: #fff; border-radius: var(--r-xl); padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(37,99,235,.2); }
+  .queue-ticket { font-size: 42px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+  .queue-patient { font-size: 17px; font-weight: 600; }
+
+  .q-lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .q-lane { background: #fff; border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+  .q-lane-head { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-light); background: var(--bg); }
+  .q-lane-head.primary { background: linear-gradient(180deg, var(--primary-light) 0%, #fff 100%); }
+  .q-lane-head.accent { background: linear-gradient(180deg, #faf5ff 0%, #fff 100%); }
+  .q-lane-count { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .q-lane-count.accent { background: var(--accent); }
+  .q-lane-body { padding: 8px 0; }
+  .q-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border-light); transition: background .12s; }
+  .q-item:last-child { border-bottom: none; }
+  .q-item:hover { background: var(--bg); }
+  .q-tix { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+  .q-tix.primary { background: var(--primary-light); color: var(--primary); }
+  .q-tix.accent { background: #f3e8ff; color: var(--accent); }
+  .q-item-body { flex: 1; min-width: 0; }
+  .q-item-name { font-weight: 600; font-size: 13.5px; }
+  .q-item-meta { font-size: 11.5px; color: var(--text-mut); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Prescription */
+  .rx-doc { background: #fff; border: 1px solid var(--border); border-radius: var(--r); padding: 28px 32px; font-family: 'Georgia', serif; }
+  .rx-head { display: flex; justify-content: space-between; align-items: start; padding-bottom: 14px; border-bottom: 2px solid var(--primary); margin-bottom: 16px; }
+  .rx-clinic { font-size: 15px; font-weight: 700; color: var(--primary); }
+  .rx-title { font-size: 20px; font-weight: 700; margin: 12px 0 8px; }
+  .rx-meta { font-size: 12px; color: var(--text-mut); }
+  .rx-med { padding: 10px 0; border-bottom: 1px dashed var(--border); }
+  .rx-med-name { font-weight: 600; font-size: 14px; }
+  .rx-med-dose { font-size: 13px; color: var(--text-sec); margin-top: 2px; }
+
+  /* Icons (using unicode/SVG) */
+  .ic { display: inline-block; width: 1em; height: 1em; vertical-align: -.125em; }
+
+  /* List group */
+  .list-item { padding: 14px 18px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+  .list-item:last-child { border-bottom: none; }
+  .list-item:hover { background: var(--bg-subtle); }
+
+  /* Timeline */
+  .timeline { padding-left: 8px; }
+  .timeline-item { position: relative; padding-left: 22px; padding-bottom: 14px; border-left: 2px solid var(--border-light); margin-left: 4px; }
+  .timeline-item:last-child { border-left-color: transparent; padding-bottom: 0; }
+  .timeline-item::before { content: ''; position: absolute; left: -7px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid var(--primary); }
+  .timeline-date { font-size: 11.5px; color: var(--text-mut); text-transform: uppercase; letter-spacing: .04em; }
+  .timeline-title { font-size: 13.5px; font-weight: 600; color: var(--text); margin-top: 2px; }
+  .timeline-meta { font-size: 12.5px; color: var(--text-sec); margin-top: 2px; }
+
+  /* ── Amira (AI assistant) ── */
+  .amira-fab { position: fixed; right: 24px; bottom: 24px; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 0 0 4px rgba(37,99,235,.08), 0 6px 20px rgba(37,99,235,.35); z-index: 300; border: none; font-family: inherit; animation: amira-breathe 2.4s ease-in-out infinite; font-size: 22px; font-weight: 800; }
+  .amira-fab:hover { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(37,99,235,.12), 0 8px 26px rgba(37,99,235,.45); }
+  .amira-fab-sparkle { font-size: 22px; line-height: 1; font-weight: 800; font-family: 'Inter','Segoe UI',system-ui,sans-serif; }
+  .amira-fab-badge { position: absolute; top: 3px; right: 3px; width: 11px; height: 11px; background: #ef4444; border-radius: 50%; border: 2px solid #fff; animation: badgePop .3s var(--ease-bounce); }
+  @keyframes amira-breathe { 0%,100% { box-shadow: 0 0 0 4px rgba(37,99,235,.08), 0 6px 20px rgba(37,99,235,.35); } 50% { box-shadow: 0 0 0 12px rgba(37,99,235,.04), 0 6px 20px rgba(37,99,235,.35); } }
+  @keyframes badgePop { from { transform: scale(0); } to { transform: scale(1); } }
+
+  .amira-suggest { position: fixed; right: 92px; bottom: 32px; max-width: 280px; background: #fff; border-radius: var(--r-lg); box-shadow: 0 8px 24px rgba(0,0,0,.12); border: 1px solid var(--border); padding: 14px 16px; z-index: 199; display: none; }
+  .amira-suggest.active { display: block; animation: suggest-in .3s var(--ease-bounce); }
+  @keyframes suggest-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .amira-suggest::after { content: ''; position: absolute; right: -8px; bottom: 16px; width: 14px; height: 14px; background: #fff; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); transform: rotate(-45deg); }
+  .amira-suggest-title { font-size: 11.5px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+  .amira-suggest-body { font-size: 12.5px; color: var(--text); line-height: 1.45; }
+
+  .amira-panel { position: fixed; right: 0; top: var(--titlebar-h); bottom: 0; width: 380px; background: #fff; border-left: 1px solid var(--border); box-shadow: -8px 0 24px rgba(0,0,0,.06); z-index: 250; display: none; flex-direction: column; transform: translateX(100%); transition: transform .3s var(--ease); }
+  .amira-panel.active { display: flex; transform: translateX(0); }
+  .amira-head { padding: 16px 20px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #faf5ff 0%, #eff6ff 100%); }
+  .amira-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #2563eb); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .amira-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .amira-status { font-size: 11.5px; color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 5px; }
+  .amira-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px rgba(16,185,129,.2); }
+  .amira-close { margin-left: auto; width: 30px; height: 30px; border: none; background: transparent; color: var(--text-mut); border-radius: 8px; cursor: pointer; font-size: 18px; }
+  .amira-close:hover { background: var(--bg-subtle); color: var(--text); }
+  .amira-body { padding: 16px 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .amira-msg { max-width: 88%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.5; }
+  .amira-msg.her { background: linear-gradient(135deg, #faf5ff 0%, #eff6ff 100%); border: 1px solid #e9d5ff; color: var(--text); border-bottom-left-radius: 4px; align-self: flex-start; }
+  .amira-msg.me { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+  .amira-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; background: #fff; border: 1px solid var(--border); border-radius: var(--r-full); font-size: 12px; color: var(--text-sec); cursor: pointer; font-weight: 500; transition: all .15s; }
+  .amira-chip:hover { border-color: var(--accent); color: var(--accent); background: #faf5ff; }
+  .amira-input-wrap { padding: 14px 16px; border-top: 1px solid var(--border-light); display: flex; gap: 8px; }
+  .amira-input-wrap input { flex: 1; }
+
+  /* Utility */
+  .mute { color: var(--text-mut); }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .gap-2 { gap: .5rem; }
+  .gap-3 { gap: .75rem; }
+  .gap-4 { gap: 1rem; }
+  .grid { display: grid; }
+  .mb-3 { margin-bottom: .75rem; }
+  .mb-4 { margin-bottom: 1rem; }
+  .mt-3 { margin-top: .75rem; }
+  .mt-4 { margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<!-- ============ TITLE BAR (visible everywhere) ============ -->
+<div class="titlebar">
+  <span class="titlebar-icon">D</span>
+  <span class="titlebar-title">Dawini — Dr. Nour Amari</span>
+  <div class="titlebar-controls">
+    <button>—</button><button>☐</button><button>×</button>
+  </div>
+</div>
+
+<!-- ============ PAGE: LOGIN (standalone) ============ -->
+<div id="page-login" class="page">
+  <div class="standalone">
+    <div class="card" style="width: 100%; max-width: 420px; padding: 36px; border-radius: 20px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom: 28px;">
+        <div style="width:48px; height:48px; border-radius:12px; background: linear-gradient(135deg, var(--primary), var(--accent)); display:grid; place-items:center; color:#fff; font-weight:800; font-size:22px;">D</div>
+        <div>
+          <div style="font-size: 22px; font-weight: 800; color: var(--primary); line-height:1;">Dawini</div>
+          <div class="mute" style="font-size: 12.5px; margin-top: 4px;">Cabinet médical · Alger</div>
+        </div>
+      </div>
+
+      <h2 style="font-size: 18px; margin: 0 0 6px; font-weight: 700;">Connexion</h2>
+      <p class="mute" style="font-size: 13px; margin: 0 0 24px;">Votre espace de travail, sécurisé et local.</p>
+
+      <form onsubmit="event.preventDefault(); submitLogin();">
+        <div class="form-group">
+          <label class="form-label" for="input-email">Email</label>
+          <input id="input-email" class="form-control" type="email" placeholder="nour@cabinet.dz" value="nour.amari@cabinet.dz" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="input-password">Mot de passe</label>
+          <input id="input-password" class="form-control" type="password" value="••••••••" />
+        </div>
+        <button id="btn-login" type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 8px;">Se connecter</button>
+      </form>
+
+      <p class="mute" style="font-size: 11.5px; margin: 20px 0 0; text-align: center;">Toutes les données restent sur votre poste. Aucun cloud.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SHELL (sidebar + main, used for all post-login pages) ============ -->
+<div id="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-logo">D</div>
+      <div class="sidebar-brand-text">Dawini</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div id="nav-dashboard" class="nav-link active"><i>▦</i> Tableau de bord</div>
+      <div id="nav-patients" class="nav-link"><i>👥</i> Patients</div>
+      <div id="nav-appointments" class="nav-link"><i>📅</i> Rendez-vous</div>
+      <div id="nav-consultations" class="nav-link"><i>🩺</i> Consultations</div>
+      <div id="nav-ordonnances" class="nav-link"><i>💊</i> Ordonnances</div>
+      <div id="nav-certificats" class="nav-link"><i>📄</i> Certificats</div>
+      <div id="nav-facturation" class="nav-link"><i>🧾</i> Facturation</div>
+      <div id="nav-queue" class="nav-link"><i>⏳</i> File d'attente</div>
+      <div class="nav-divider"></div>
+      <div id="nav-employees" class="nav-link"><i>🪪</i> Employés</div>
+      <div id="nav-settings" class="nav-link"><i>⚙</i> Paramètres</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="avatar">NA</div>
+      <div>
+        <div class="user-name">Dr. Nour Amari</div>
+        <div class="user-role">Médecin généraliste</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="app-header">
+      <div>
+        <h1 id="header-title">Tableau de bord</h1>
+        <div class="sub" id="header-sub">Lundi 21 avril 2026</div>
+      </div>
+    </div>
+
+    <div class="app-content">
+
+      <!-- DASHBOARD -->
+      <section id="page-dashboard" class="page page-active">
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-row">
+              <div class="stat-icon primary">🩺</div>
+              <div>
+                <div class="stat-label">Consultations aujourd'hui</div>
+                <div class="stat-value">14</div>
+                <div class="stat-delta">+3 vs hier</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-row">
+              <div class="stat-icon success">💰</div>
+              <div>
+                <div class="stat-label">Recettes du jour</div>
+                <div class="stat-value">42 000 DA</div>
+                <div class="stat-delta">+12%</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-row">
+              <div class="stat-icon warning">⏳</div>
+              <div>
+                <div class="stat-label">En file d'attente</div>
+                <div class="stat-value">3</div>
+                <div class="stat-delta" style="color: var(--text-mut); font-weight:500;">prochain dans 8 min</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-row">
+              <div class="stat-icon primary">📅</div>
+              <div>
+                <div class="stat-label">RDV à venir</div>
+                <div class="stat-value">7</div>
+                <div class="stat-delta" style="color: var(--text-mut); font-weight:500;">jusqu'à 18h00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px;">
+          <div class="card">
+            <div class="card-head">
+              <h3>Rendez-vous aujourd'hui</h3>
+              <span class="badge badge-primary">7 à venir</span>
+            </div>
+            <table>
+              <thead><tr><th>Heure</th><th>Patient</th><th>Motif</th><th>Statut</th></tr></thead>
+              <tbody>
+                <tr id="appt-row-1" onclick="openAppointment()"><td><b>09:00</b></td><td>Bensalem Yasmine</td><td>Suivi hypertension</td><td><span class="badge badge-success">Terminé</span></td></tr>
+                <tr><td><b>09:30</b></td><td>Mohammedi Karim</td><td>Consultation générale</td><td><span class="badge badge-success">Terminé</span></td></tr>
+                <tr><td><b>10:00</b></td><td>Saidi Amina</td><td>Renouvellement ordonnance</td><td><span class="badge badge-primary">Arrivé</span></td></tr>
+                <tr id="appt-row-current"><td><b>10:30</b></td><td>Hamidi Rachid</td><td>Douleur thoracique</td><td><span class="badge badge-warning">En attente</span></td></tr>
+                <tr><td><b>11:00</b></td><td>Boucenna Leïla</td><td>Certificat médical</td><td><span class="badge badge-secondary">Planifié</span></td></tr>
+                <tr><td><b>11:30</b></td><td>Djebbar Sofiane</td><td>Bilan annuel</td><td><span class="badge badge-secondary">Planifié</span></td></tr>
+                <tr><td><b>14:00</b></td><td>Kaced Malika</td><td>Consultation</td><td><span class="badge badge-secondary">Planifié</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Raccourcis</h3>
+            </div>
+            <div class="card-body" style="display:flex; flex-direction: column; gap: 10px;">
+              <button id="btn-shortcut-patient" class="btn btn-outline btn-block">+ Nouveau patient</button>
+              <button id="btn-shortcut-appt" class="btn btn-outline btn-block">+ Nouveau RDV</button>
+              <button id="btn-shortcut-consult" class="btn btn-primary btn-block">🩺 Démarrer consultation</button>
+              <hr style="border:none; border-top:1px solid var(--border-light); margin: 8px 0;"/>
+              <div class="list-item" style="padding:0;">
+                <div><div style="font-weight:600; font-size:12.5px;">Sauvegarde automatique</div><div class="mute" style="font-size:11.5px;">il y a 4 min</div></div>
+                <span class="badge badge-success">OK</span>
+              </div>
+              <div class="list-item" style="padding:0;">
+                <div><div style="font-weight:600; font-size:12.5px;">Licence</div><div class="mute" style="font-size:11.5px;">valide jusqu'au 31 déc 2026</div></div>
+                <span class="badge badge-primary">Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PATIENTS LIST -->
+      <section id="page-patients" class="page">
+        <div class="page-header">
+          <div>
+            <h2>Patients</h2>
+            <div class="page-sub">847 patients actifs</div>
+          </div>
+          <button id="btn-new-patient" class="btn btn-primary">+ Nouveau patient</button>
+        </div>
+
+        <div class="card">
+          <div class="card-head" style="gap: 12px;">
+            <div class="search-wrap" style="flex:1; max-width: 340px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="input-search-patient" class="form-control" placeholder="Rechercher par nom, téléphone, NIN..." />
+            </div>
+            <select class="form-select" style="max-width: 180px;">
+              <option>Tous les genres</option><option>Féminin</option><option>Masculin</option>
+            </select>
+          </div>
+          <table>
+            <thead><tr><th>Nom complet</th><th>Âge</th><th>Téléphone</th><th>Dernière visite</th><th>Dossier</th></tr></thead>
+            <tbody>
+              <tr id="patient-row-1" onclick="showSubPage('patient')"><td><b>Bensalem Yasmine</b></td><td>34 ans · F</td><td>0550 12 34 56</td><td>21 avril 2026</td><td><span class="badge badge-primary">Actif</span></td></tr>
+              <tr><td><b>Mohammedi Karim</b></td><td>52 ans · M</td><td>0551 22 33 44</td><td>21 avril 2026</td><td><span class="badge badge-primary">Actif</span></td></tr>
+              <tr><td><b>Saidi Amina</b></td><td>28 ans · F</td><td>0662 45 67 89</td><td>15 mars 2026</td><td><span class="badge badge-primary">Actif</span></td></tr>
+              <tr><td><b>Hamidi Rachid</b></td><td>61 ans · M</td><td>0770 11 22 33</td><td>10 mars 2026</td><td><span class="badge badge-primary">Actif</span></td></tr>
+              <tr><td><b>Boucenna Leïla</b></td><td>45 ans · F</td><td>0555 88 77 66</td><td>2 mars 2026</td><td><span class="badge badge-secondary">Inactif</span></td></tr>
+              <tr><td><b>Djebbar Sofiane</b></td><td>39 ans · M</td><td>0560 33 44 55</td><td>28 février 2026</td><td><span class="badge badge-primary">Actif</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PATIENT DETAIL -->
+      <section id="page-patient" class="page">
+        <div class="page-header">
+          <div class="flex items-center gap-3">
+            <div class="avatar" style="width:56px; height:56px; font-size:18px;">BY</div>
+            <div>
+              <h2>Bensalem Yasmine</h2>
+              <div class="page-sub">34 ans · Féminin · NIN 199****1234 · 0550 12 34 56</div>
+            </div>
+          </div>
+          <button id="btn-new-consultation" class="btn btn-primary">🩺 Nouvelle consultation</button>
+        </div>
+
+        <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 20px;">
+          <div class="card">
+            <div class="card-head"><h3>Historique médical</h3></div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-date">21 avril 2026 · 09:00</div>
+                  <div class="timeline-title">Suivi hypertension</div>
+                  <div class="timeline-meta">TA 13/8 · Traitement poursuivi · Prochain RDV dans 3 mois</div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-date">18 janvier 2026</div>
+                  <div class="timeline-title">Bilan sanguin de contrôle</div>
+                  <div class="timeline-meta">Glycémie normale · Cholestérol légèrement élevé</div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-date">12 novembre 2025</div>
+                  <div class="timeline-title">Consultation pour céphalées</div>
+                  <div class="timeline-meta">TA 14/9 · Introduction Amlodipine 5mg</div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-date">3 septembre 2025</div>
+                  <div class="timeline-title">Consultation annuelle</div>
+                  <div class="timeline-meta">Examen clinique normal</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card mb-4">
+              <div class="card-head"><h3>Dossier</h3></div>
+              <div class="card-body">
+                <div class="mb-3"><div class="mute" style="font-size:11.5px;">GROUPE SANGUIN</div><div style="font-weight:600;">A+</div></div>
+                <div class="mb-3"><div class="mute" style="font-size:11.5px;">ALLERGIES</div><div style="font-weight:600;">Pénicilline</div></div>
+                <div class="mb-3"><div class="mute" style="font-size:11.5px;">ANTÉCÉDENTS</div><div style="font-weight:600;">HTA (2024)</div></div>
+                <div><div class="mute" style="font-size:11.5px;">TRAITEMENTS EN COURS</div><div style="font-weight:600;">Amlodipine 5mg · 1/j</div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Documents</h3></div>
+              <div class="list-item"><div><div style="font-weight:600;">Bilan sanguin 01/2026</div><div class="mute" style="font-size:11.5px;">PDF · 142 Ko</div></div><span class="mute">📎</span></div>
+              <div class="list-item"><div><div style="font-weight:600;">ECG 11/2025</div><div class="mute" style="font-size:11.5px;">PDF · 89 Ko</div></div><span class="mute">📎</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONSULTATION FORM -->
+      <section id="page-consultation" class="page">
+        <div class="page-header">
+          <div>
+            <h2>Nouvelle consultation</h2>
+            <div class="page-sub">Bensalem Yasmine · 34 ans · HTA</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-light">Annuler</button>
+            <button id="btn-save-consult" class="btn btn-primary">💾 Enregistrer et ordonnance</button>
+          </div>
+        </div>
+
+        <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 20px;">
+          <div>
+            <div class="card mb-4">
+              <div class="card-head"><h3>Motif de consultation</h3></div>
+              <div class="card-body">
+                <textarea id="input-motif" placeholder="Décrire le motif...">Contrôle tension artérielle. Patiente signale légers maux de tête matinaux depuis 1 semaine.</textarea>
+              </div>
+            </div>
+
+            <div class="card mb-4">
+              <div class="card-head"><h3>Examen clinique</h3></div>
+              <div class="card-body">
+                <div class="field-row cols-2">
+                  <div><label class="form-label">Tension artérielle</label><input class="form-control" value="13/8" /></div>
+                  <div><label class="form-label">Fréquence cardiaque</label><input class="form-control" value="76 bpm" /></div>
+                  <div><label class="form-label">Température</label><input class="form-control" value="36.8 °C" /></div>
+                  <div><label class="form-label">Poids</label><input class="form-control" value="68 kg" /></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h3>Diagnostic</h3></div>
+              <div class="card-body">
+                <textarea id="input-diagnostic" placeholder="Diagnostic...">HTA stable sous traitement. Céphalées d'origine tensionnelle, recommandation repos + hydratation.</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-head"><h3>Ordonnance</h3></div>
+              <div class="card-body" style="padding: 14px 16px;">
+                <div id="rx-list">
+                  <div class="list-item" style="padding: 10px 0;">
+                    <div><div style="font-weight:600;">Amlodipine 5mg</div><div class="mute" style="font-size:11.5px;">1 cp le matin · 30 jours</div></div>
+                    <span class="mute">✕</span>
+                  </div>
+                  <div class="list-item" style="padding: 10px 0;">
+                    <div><div style="font-weight:600;">Paracétamol 500mg</div><div class="mute" style="font-size:11.5px;">si douleur · max 3×/j · 5 jours</div></div>
+                    <span class="mute">✕</span>
+                  </div>
+                </div>
+                <button id="btn-add-med" class="btn btn-outline btn-block mt-3">+ Ajouter un médicament</button>
+              </div>
+            </div>
+
+            <div class="card mt-4">
+              <div class="card-head"><h3>Suivi</h3></div>
+              <div class="card-body">
+                <div class="mb-3"><label class="form-label">Prochain RDV</label><input class="form-control" type="date" value="2026-07-20" /></div>
+                <label class="form-label">Notes</label>
+                <textarea placeholder="Instructions pour le patient...">Contrôle TA à domicile. Revenir si céphalées persistent après 5 jours.</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ORDONNANCE / PRESCRIPTION -->
+      <section id="page-ordonnance" class="page">
+        <div class="page-header">
+          <div>
+            <h2>Ordonnance</h2>
+            <div class="page-sub">Bensalem Yasmine · 21 avril 2026</div>
+          </div>
+          <div class="flex gap-2">
+            <button id="btn-print-rx" class="btn btn-primary">🖨 Imprimer</button>
+            <button class="btn btn-light">📧 Envoyer par email</button>
+          </div>
+        </div>
+
+        <div style="max-width: 720px;">
+          <div class="rx-doc">
+            <div class="rx-head">
+              <div>
+                <div class="rx-clinic">Dr. Nour Amari</div>
+                <div class="rx-meta">Médecin généraliste · 42 rue Didouche Mourad, Alger</div>
+                <div class="rx-meta">Tél. 021 63 12 34 · Conseil de l'Ordre #18472</div>
+              </div>
+              <div style="text-align: right;">
+                <div class="rx-meta">Alger, le</div>
+                <div style="font-weight: 700; margin-top: 2px;">21 avril 2026</div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 14px; font-weight: 600;">Bensalem Yasmine</div>
+              <div class="rx-meta">34 ans · Féminin</div>
+            </div>
+
+            <div class="rx-title">Ordonnance</div>
+
+            <div class="rx-med">
+              <div class="rx-med-name">1. Amlodipine 5 mg</div>
+              <div class="rx-med-dose">1 comprimé le matin, à jeun · 30 jours · renouvelable 3 mois</div>
+            </div>
+            <div class="rx-med">
+              <div class="rx-med-name">2. Paracétamol 500 mg</div>
+              <div class="rx-med-dose">Si céphalées — 1 cp jusqu'à 3 fois par jour · 5 jours maximum</div>
+            </div>
+
+            <div style="margin-top: 28px; padding-top: 18px; border-top: 1px dashed var(--border); display:flex; justify-content: space-between; font-size: 13px;">
+              <div><div class="rx-meta">Cachet & signature</div><div style="margin-top: 40px; font-weight: 700; color: var(--primary);">Dr. N. Amari</div></div>
+              <div style="text-align: right;"><div class="rx-meta">Prochain contrôle</div><div style="margin-top: 4px; font-weight: 600;">20 juillet 2026</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- QUEUE — 2 lanes (RDV / Sans RDV) + stats bar -->
+      <section id="page-queue" class="page">
+        <div class="page-header">
+          <div>
+            <h2>File d'attente <span class="live-dot" title="temps réel"></span></h2>
+            <div class="page-sub">Salle d'attente · mise à jour en temps réel</div>
+          </div>
+          <div class="flex gap-2">
+            <button id="btn-queue-qr" class="btn btn-light">📱 Écran salle d'attente</button>
+            <button id="btn-queue-next" class="btn btn-primary">🔔 Appeler le suivant</button>
+          </div>
+        </div>
+
+        <!-- Stats bar -->
+        <div id="queue-stats" class="q-stats-bar">
+          <div class="q-stat"><span class="q-stat-dot warning"></span><span class="q-stat-value">5</span><span class="q-stat-label">en attente</span></div>
+          <div class="q-stat-sep"></div>
+          <div class="q-stat"><span class="q-stat-ic primary">📅</span><span class="q-stat-value">3</span><span class="q-stat-label">rendez-vous</span></div>
+          <div class="q-stat-sep"></div>
+          <div class="q-stat"><span class="q-stat-ic accent">🚶</span><span class="q-stat-value">2</span><span class="q-stat-label">sans RDV</span></div>
+          <div class="q-stat-sep"></div>
+          <div class="q-stat"><span class="q-stat-ic success">✓</span><span class="q-stat-value">11</span><span class="q-stat-label">vus ce matin</span></div>
+        </div>
+
+        <!-- Current patient card -->
+        <div class="queue-current" id="queue-current">
+          <div>
+            <div class="mute" style="color: rgba(255,255,255,.8); font-size: 11px; text-transform: uppercase; letter-spacing: .08em;">En consultation actuellement</div>
+            <div style="display:flex; align-items:baseline; gap:16px; margin-top:8px;">
+              <div class="queue-ticket">A-12</div>
+              <div>
+                <div class="queue-patient">Saidi Amina</div>
+                <div style="opacity:.85; font-size: 13px; margin-top: 2px;">Renouvellement ordonnance · entrée à 10:02</div>
+              </div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="opacity:.8; font-size: 11px; text-transform: uppercase; letter-spacing: .08em;">Durée</div>
+            <div style="font-size: 28px; font-weight: 700;">8<span style="font-size: 14px; font-weight: 500; opacity: .8;"> min</span></div>
+          </div>
+        </div>
+
+        <!-- Two lanes -->
+        <div class="q-lanes">
+          <div class="q-lane">
+            <div class="q-lane-head primary">
+              <div class="flex items-center gap-2">
+                <span style="width:28px; height:28px; border-radius:8px; background: var(--primary-light); color: var(--primary); display:grid; place-items:center;">📅</span>
+                <span style="font-weight: 700; font-size: 14px;">Avec rendez-vous</span>
+                <span class="q-lane-count">3</span>
+              </div>
+              <button class="btn btn-light btn-sm">+ Arrivée</button>
+            </div>
+            <div class="q-lane-body">
+              <div class="q-item">
+                <div class="q-tix primary">A-13</div>
+                <div class="q-item-body">
+                  <div class="q-item-name">Hamidi Rachid</div>
+                  <div class="q-item-meta">RDV 10:30 · Douleur thoracique · arrivé 10:15</div>
+                </div>
+                <span class="badge badge-warning">Suivant</span>
+              </div>
+              <div class="q-item">
+                <div class="q-tix primary">A-14</div>
+                <div class="q-item-body">
+                  <div class="q-item-name">Boucenna Leïla</div>
+                  <div class="q-item-meta">RDV 11:00 · Certificat médical · arrivée 10:22</div>
+                </div>
+                <span class="badge badge-secondary">Attend 8 min</span>
+              </div>
+              <div class="q-item">
+                <div class="q-tix primary">A-15</div>
+                <div class="q-item-body">
+                  <div class="q-item-name">Djebbar Sofiane</div>
+                  <div class="q-item-meta">RDV 11:30 · Bilan annuel · arrivé 10:28</div>
+                </div>
+                <span class="badge badge-secondary">Attend 2 min</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="q-lane">
+            <div class="q-lane-head accent">
+              <div class="flex items-center gap-2">
+                <span style="width:28px; height:28px; border-radius:8px; background: #f3e8ff; color: var(--accent); display:grid; place-items:center;">🚶</span>
+                <span style="font-weight: 700; font-size: 14px;">Sans rendez-vous</span>
+                <span class="q-lane-count accent">2</span>
+              </div>
+              <button id="btn-walkin-add" class="btn btn-light btn-sm">+ Walk-in</button>
+            </div>
+            <div class="q-lane-body">
+              <div class="q-item">
+                <div class="q-tix accent">W-04</div>
+                <div class="q-item-body">
+                  <div class="q-item-name">Merabet Nadia</div>
+                  <div class="q-item-meta">Walk-in · fièvre depuis 2 jours · arrivée 10:08</div>
+                </div>
+                <span class="badge badge-warning">22 min</span>
+              </div>
+              <div class="q-item">
+                <div class="q-tix accent">W-05</div>
+                <div class="q-item-body">
+                  <div class="q-item-name">Oualid Karim</div>
+                  <div class="q-item-meta">Walk-in · renouvellement · arrivé 10:25</div>
+                </div>
+                <span class="badge badge-secondary">5 min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- APPOINTMENTS / AGENDA -->
+      <section id="page-appointments" class="page">
+        <div class="page-header">
+          <div>
+            <h2>Rendez-vous</h2>
+            <div class="page-sub">Semaine du 20 au 26 avril 2026</div>
+          </div>
+          <button id="btn-new-appt" class="btn btn-primary">+ Nouveau RDV</button>
+        </div>
+
+        <div class="agenda-toolbar">
+          <div class="flex items-center gap-2">
+            <button class="btn btn-light btn-sm">‹</button>
+            <span class="agenda-range">20 — 26 avril 2026</span>
+            <button class="btn btn-light btn-sm">›</button>
+            <button class="btn btn-outline btn-sm" style="margin-left: 8px;">Aujourd'hui</button>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-light btn-sm">Jour</button>
+            <button class="btn btn-primary btn-sm">Semaine</button>
+            <button class="btn btn-light btn-sm">Mois</button>
+          </div>
+        </div>
+
+        <!-- Agenda: each 30-min slot = 48px tall. Events use top = (hour-9)*96 + (min/30)*48 within day col -->
+        <div class="agenda-wrap">
+          <div class="agenda-header">
+            <div class="dow"><div class="dow-name">GMT+1</div></div>
+            <div class="dow"><div class="dow-name">Lun</div><div class="dow-num">20</div></div>
+            <div class="dow today"><div class="dow-name">Mar</div><div class="dow-num">21</div></div>
+            <div class="dow"><div class="dow-name">Mer</div><div class="dow-num">22</div></div>
+            <div class="dow"><div class="dow-name">Jeu</div><div class="dow-num">23</div></div>
+            <div class="dow"><div class="dow-name">Ven</div><div class="dow-num">24</div></div>
+          </div>
+
+          <div class="agenda-body" style="height: 576px;">
+            <div class="time-col">
+              <div class="time-slot">09:00</div>
+              <div class="time-slot">10:00</div>
+              <div class="time-slot">11:00</div>
+              <div class="time-slot">12:00</div>
+              <div class="time-slot">13:00</div>
+              <div class="time-slot">14:00</div>
+            </div>
+
+            <!-- Monday 20 -->
+            <div class="day-col">
+              <div class="evt blue"   style="top:0;    height:44px;">Hadj A.<div class="evt-time">09:00 — 09:30</div></div>
+              <div class="evt green"  style="top:96px; height:44px;">Rachidi N.<div class="evt-time">10:00 — 10:30</div></div>
+              <div class="evt cyan"   style="top:192px;height:44px;">Kerrouche M.<div class="evt-time">11:00 — 11:30</div></div>
+              <div class="evt blue"   style="top:480px;height:44px;">Benali F.<div class="evt-time">14:00 — 14:30</div></div>
+            </div>
+
+            <!-- Tuesday 21 (today) -->
+            <div class="day-col today">
+              <div class="evt purple" style="top:0;    height:44px;">Bensalem Y.<div class="evt-time">09:00 · HTA</div></div>
+              <div class="evt green"  style="top:48px; height:44px;">Mohammedi K.<div class="evt-time">09:30</div></div>
+              <div class="evt amber"  style="top:96px; height:44px;">Saidi A.<div class="evt-time">10:00 · Ordonnance</div></div>
+              <div class="evt rose"   style="top:144px;height:44px;">Hamidi R.<div class="evt-time">10:30 · Douleur thor.</div></div>
+              <div class="evt cyan"   style="top:192px;height:44px;">Boucenna L.<div class="evt-time">11:00 · Certificat</div></div>
+              <div class="evt blue"   style="top:240px;height:44px;">Djebbar S.<div class="evt-time">11:30 · Bilan</div></div>
+              <div class="evt purple" style="top:480px;height:44px;">Kaced M.<div class="evt-time">14:00</div></div>
+            </div>
+
+            <!-- Wednesday 22 -->
+            <div class="day-col">
+              <div class="evt amber"  style="top:48px; height:44px;">Amrane F.<div class="evt-time">09:30</div></div>
+              <div class="evt green"  style="top:144px;height:44px;">Sahel R.<div class="evt-time">10:45</div></div>
+              <div class="evt blue"   style="top:480px;height:44px;">Zidane O.<div class="evt-time">14:00</div></div>
+            </div>
+
+            <!-- Thursday 23 -->
+            <div class="day-col">
+              <div class="evt blue"   style="top:48px; height:44px;">Touati K.<div class="evt-time">09:30</div></div>
+              <div class="evt cyan"   style="top:144px;height:44px;">Berkani I.<div class="evt-time">10:45</div></div>
+              <div class="evt purple" style="top:240px;height:44px;">Meziane A.<div class="evt-time">11:30</div></div>
+              <div class="evt rose"   style="top:528px;height:44px;">Lahlou S.<div class="evt-time">14:30</div></div>
+            </div>
+
+            <!-- Friday 24 -->
+            <div class="day-col">
+              <div class="evt green"  style="top:0;    height:44px;">Kaced M.<div class="evt-time">09:00</div></div>
+              <div class="evt amber"  style="top:192px;height:44px;">Chibane R.<div class="evt-time">11:00</div></div>
+              <div class="evt blue"   style="top:384px;height:44px;">Ouali N.<div class="evt-time">13:00</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CERTIFICAT -->
+      <section id="page-certificat" class="page">
+        <div class="page-header">
+          <div>
+            <h2>Nouveau certificat médical</h2>
+            <div class="page-sub">Boucenna Leïla · 45 ans</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-light">Annuler</button>
+            <button id="btn-save-certif" class="btn btn-primary">💾 Enregistrer et imprimer</button>
+          </div>
+        </div>
+
+        <div class="card" style="max-width: 720px;">
+          <div class="card-body">
+            <div class="field-row cols-2">
+              <div><label class="form-label">Type de certificat</label>
+                <select class="form-select"><option>Aptitude au travail</option><option>Arrêt de travail</option><option>Dispense sport</option><option>Aptitude scolaire</option></select>
+              </div>
+              <div><label class="form-label">Durée</label><input class="form-control" value="7 jours" /></div>
+            </div>
+            <div style="margin-top: 12px;"><label class="form-label">Motif</label>
+              <textarea>Syndrome grippal nécessitant repos et traitement symptomatique. Examen clinique ce jour.</textarea>
+            </div>
+            <div style="margin-top: 12px;"><label class="form-label">Observations particulières</label>
+              <textarea placeholder="Optionnel"></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FACTURATION -->
+      <section id="page-facturation" class="page">
+        <div class="page-header">
+          <div>
+            <h2>Facturation</h2>
+            <div class="page-sub">47 factures ce mois · 218 400 DA encaissés</div>
+          </div>
+          <button class="btn btn-primary">+ Nouvelle facture</button>
+        </div>
+
+        <div class="stats mb-4">
+          <div class="stat"><div class="stat-row"><div class="stat-icon success">💰</div><div><div class="stat-label">Payées</div><div class="stat-value">218 400 DA</div><div class="stat-delta">38 factures</div></div></div></div>
+          <div class="stat"><div class="stat-row"><div class="stat-icon warning">⏳</div><div><div class="stat-label">En attente</div><div class="stat-value">24 000 DA</div><div class="stat-delta" style="color: var(--text-mut); font-weight:500;">6 factures</div></div></div></div>
+          <div class="stat"><div class="stat-row"><div class="stat-icon danger">⚠</div><div><div class="stat-label">Impayées</div><div class="stat-value">9 500 DA</div><div class="stat-delta" style="color: var(--text-mut); font-weight:500;">3 factures</div></div></div></div>
+          <div class="stat"><div class="stat-row"><div class="stat-icon primary">📊</div><div><div class="stat-label">Total mois</div><div class="stat-value">47</div><div class="stat-delta">+8 vs avril</div></div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head" style="gap: 12px;">
+            <h3>Factures récentes</h3>
+            <div class="search-wrap" style="max-width: 280px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input class="form-control" placeholder="N°, patient..." />
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>N°</th><th>Date</th><th>Patient</th><th style="text-align:right;">Total</th><th style="text-align:right;">Payé</th><th style="text-align:right;">Solde</th><th>Statut</th><th></th></tr></thead>
+            <tbody>
+              <tr><td style="color: var(--primary); font-weight: 600;">F-2026-0421-14</td><td class="mute">21/04/2026</td><td><b>Bensalem Yasmine</b></td><td style="text-align:right; font-weight: 500;">3 500 DA</td><td style="text-align:right; color: var(--success);">3 500 DA</td><td style="text-align:right; color: var(--text-mut);">—</td><td><span class="badge badge-success">Payée</span></td><td style="text-align:right;">🖨 👁</td></tr>
+              <tr><td style="color: var(--primary); font-weight: 600;">F-2026-0421-13</td><td class="mute">21/04/2026</td><td><b>Mohammedi Karim</b></td><td style="text-align:right; font-weight: 500;">3 500 DA</td><td style="text-align:right; color: var(--success);">3 500 DA</td><td style="text-align:right; color: var(--text-mut);">—</td><td><span class="badge badge-success">Payée</span></td><td style="text-align:right;">🖨 👁</td></tr>
+              <tr><td style="color: var(--primary); font-weight: 600;">F-2026-0421-12</td><td class="mute">21/04/2026</td><td><b>Saidi Amina</b></td><td style="text-align:right; font-weight: 500;">3 500 DA</td><td style="text-align:right; color: var(--success);">3 500 DA</td><td style="text-align:right; color: var(--text-mut);">—</td><td><span class="badge badge-success">Payée</span></td><td style="text-align:right;">🖨 👁</td></tr>
+              <tr><td style="color: var(--primary); font-weight: 600;">F-2026-0420-11</td><td class="mute">20/04/2026</td><td><b>Benaissa Fatima</b></td><td style="text-align:right; font-weight: 500;">5 000 DA</td><td style="text-align:right; color: var(--success);">3 000 DA</td><td style="text-align:right; color: var(--danger); font-weight: 500;">2 000 DA</td><td><span class="badge badge-warning">Partielle</span></td><td style="text-align:right;">🖨 👁</td></tr>
+              <tr><td style="color: var(--primary); font-weight: 600;">F-2026-0420-10</td><td class="mute">20/04/2026</td><td><b>Chabane Omar</b></td><td style="text-align:right; font-weight: 500;">4 500 DA</td><td style="text-align:right; color: var(--text-mut);">0 DA</td><td style="text-align:right; color: var(--danger); font-weight: 500;">4 500 DA</td><td><span class="badge badge-danger">Impayée</span></td><td style="text-align:right;">🖨 👁</td></tr>
+              <tr><td style="color: var(--primary); font-weight: 600;">F-2026-0420-09</td><td class="mute">20/04/2026</td><td><b>Djeridi Salim</b></td><td style="text-align:right; font-weight: 500;">3 500 DA</td><td style="text-align:right; color: var(--success);">3 500 DA</td><td style="text-align:right; color: var(--text-mut);">—</td><td><span class="badge badge-success">Payée</span></td><td style="text-align:right;">🖨 👁</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- END-OF-DAY SUMMARY -->
+      <section id="page-done" class="page">
+        <div class="page-header">
+          <div>
+            <h2>Fin de journée</h2>
+            <div class="page-sub">Lundi 21 avril 2026 · Cabinet fermé</div>
+          </div>
+        </div>
+
+        <div class="stats mb-4">
+          <div class="stat">
+            <div class="stat-row">
+              <div class="stat-icon primary">🩺</div>
+              <div>
+                <div class="stat-label">Consultations</div>
+                <div class="stat-value">14</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-row">
+              <div class="stat-icon success">💰</div>
+              <div>
+                <div class="stat-label">Recettes</div>
+                <div class="stat-value">42 000 DA</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-row">
+              <div class="stat-icon primary">💊</div>
+              <div>
+                <div class="stat-label">Ordonnances</div>
+                <div class="stat-value">11</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-row">
+              <div class="stat-icon warning">📄</div>
+              <div>
+                <div class="stat-label">Certificats</div>
+                <div class="stat-value">3</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="done-card" class="card" style="background: linear-gradient(135deg, var(--primary-light) 0%, #faf5ff 100%); border: 1px solid #dbeafe;">
+          <div class="card-body" style="display:flex; align-items: center; gap: 20px;">
+            <div style="width:64px; height:64px; border-radius:16px; background: linear-gradient(135deg, var(--primary), var(--accent)); color:#fff; display:grid; place-items:center; font-size: 28px;">✓</div>
+            <div style="flex:1;">
+              <h3 style="margin:0 0 4px; font-size: 18px; font-weight: 700;">Journée sauvegardée localement.</h3>
+              <p class="mute" style="margin: 0; font-size: 13.5px;">Dossiers chiffrés, exportables en PDF à tout moment. Aucune donnée n'a quitté votre poste.</p>
+            </div>
+            <button class="btn btn-primary btn-lg">Verrouiller Dawini</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: NEW APPOINTMENT ============ -->
+<div id="modal-new-appt" class="backdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Nouveau rendez-vous</h3>
+      <button id="btn-modal-close" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Patient</label>
+        <input class="form-control" value="Hamidi Rachid" />
+      </div>
+      <div class="field-row cols-2">
+        <div><label class="form-label">Date</label><input class="form-control" type="date" value="2026-04-23" /></div>
+        <div><label class="form-label">Heure</label><input class="form-control" type="time" value="10:00" /></div>
+      </div>
+      <div class="form-group" style="margin-top: 12px;">
+        <label class="form-label">Motif</label>
+        <input class="form-control" value="Suivi cardiologique" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Durée</label>
+        <select class="form-select"><option>15 minutes</option><option selected>30 minutes</option><option>45 minutes</option><option>1 heure</option></select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-light" onclick="closeModal()">Annuler</button>
+      <button id="btn-modal-save" class="btn btn-primary">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: PATIENT-FACING SCREEN ============ -->
+<div id="modal-patient-view" class="backdrop">
+  <div style="display:flex; gap:28px; align-items:center;">
+    <div class="pvw-phone">
+      <div class="pvw-brand">Dawini · Salle d'attente</div>
+      <div class="pvw-live">En direct</div>
+      <div class="pvw-ticket-label">Votre ticket</div>
+      <div class="pvw-ticket">A-15</div>
+      <div class="pvw-name">Djebbar Sofiane</div>
+      <div class="pvw-position">
+        <div><div class="pvw-pos-label">Position</div><div class="pvw-pos-val">3<span style="font-size:14px; color:#94a3b8; font-weight:600; margin-left:3px;">/5</span></div></div>
+        <div><div class="pvw-pos-label">Attente</div><div class="pvw-pos-val">~25<span style="font-size:14px; color:#94a3b8; font-weight:600; margin-left:3px;">min</span></div></div>
+      </div>
+      <div class="pvw-doctor">Dr. Nour Amari · Cabinet Médical Alger</div>
+    </div>
+    <div style="max-width: 340px;">
+      <h3 style="color:#fff; font-size: 22px; font-weight: 700; margin: 0 0 10px;">Le patient voit ceci</h3>
+      <p style="color: rgba(255,255,255,.75); font-size: 14px; line-height: 1.55; margin: 0 0 16px;">À l'arrivée, il scanne un QR code à la porte. Il voit son ticket, sa position dans la file, et le temps d'attente estimé — directement sur son téléphone. Plus besoin de rester debout dans la salle d'attente.</p>
+      <button id="btn-patient-view-close" class="btn btn-primary">Fermer l'aperçu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ AMIRA — AI ASSISTANT ============ -->
+<div id="amira-suggest" class="amira-suggest">
+  <div class="amira-suggest-title">✨ Amira</div>
+  <div class="amira-suggest-body" id="amira-suggest-body">Besoin d'un coup de main ?</div>
+</div>
+
+<button id="btn-amira-fab" class="amira-fab" aria-label="Ouvrir Amira — Assistante IA">
+  <span class="amira-fab-sparkle">A</span>
+  <span class="amira-fab-badge"></span>
+</button>
+
+<div id="amira-panel" class="amira-panel">
+  <div class="amira-head">
+    <div class="amira-avatar">A</div>
+    <div>
+      <div class="amira-name">Amira</div>
+      <div class="amira-status">En ligne · assistante</div>
+    </div>
+    <button id="btn-amira-close" class="amira-close">×</button>
+  </div>
+  <div class="amira-body" id="amira-body">
+    <div class="amira-msg her">Bonjour Dr. Nour 👋 Comment puis-je vous aider aujourd'hui ?</div>
+    <div class="amira-msg her">Voici quelques idées :</div>
+    <div style="display:flex; flex-wrap: wrap; gap: 6px;">
+      <span id="amira-chip-summary" class="amira-chip">📊 Résumé de la journée</span>
+      <span id="amira-chip-nextpatient" class="amira-chip">👥 Prochain patient</span>
+      <span id="amira-chip-interactions" class="amira-chip">💊 Vérifier interactions</span>
+      <span id="amira-chip-certif" class="amira-chip">📄 Rédiger certificat</span>
+    </div>
+  </div>
+  <div class="amira-input-wrap">
+    <input id="amira-input" class="form-control" placeholder="Posez une question à Amira…" />
+    <button id="btn-amira-send" class="btn btn-primary">↑</button>
+  </div>
+</div>
+
+<!-- ============ LOADING OVERLAY ============ -->
+<div id="loading-overlay" class="overlay">
+  <div class="overlay-card">
+    <div class="spinner"></div>
+    <p id="loading-title" class="overlay-title">Chargement…</p>
+    <p id="loading-sub" class="overlay-sub">Un instant.</p>
+  </div>
+</div>
+
+<script>
+  var subPages = ['page-dashboard','page-patients','page-patient','page-consultation','page-ordonnance','page-queue','page-appointments','page-certificat','page-facturation','page-done'];
+  var subHeaders = {
+    'page-dashboard':    { t: 'Tableau de bord',       s: 'Mardi 21 avril 2026' },
+    'page-patients':     { t: 'Patients',              s: '847 patients actifs' },
+    'page-patient':      { t: 'Dossier patient',       s: 'Bensalem Yasmine' },
+    'page-consultation': { t: 'Nouvelle consultation', s: 'Bensalem Yasmine' },
+    'page-ordonnance':   { t: 'Ordonnance',            s: '21 avril 2026' },
+    'page-queue':        { t: "File d'attente",        s: 'Salle d\'attente · temps réel' },
+    'page-appointments': { t: 'Rendez-vous',           s: 'Semaine du 20 au 26 avril 2026' },
+    'page-certificat':   { t: 'Certificat médical',    s: 'Nouveau document' },
+    'page-facturation':  { t: 'Facturation',           s: '47 factures ce mois' },
+    'page-done':         { t: 'Fin de journée',        s: 'Lundi 21 avril 2026' },
+  };
+  var navMap = {
+    'page-dashboard':    'nav-dashboard',
+    'page-patients':     'nav-patients',
+    'page-patient':      'nav-patients',
+    'page-consultation': 'nav-consultations',
+    'page-ordonnance':   'nav-ordonnances',
+    'page-queue':        'nav-queue',
+    'page-appointments': 'nav-appointments',
+    'page-certificat':   'nav-certificats',
+    'page-facturation':  'nav-facturation',
+    'page-done':         'nav-dashboard',
+  };
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('page-active'); });
+    var el = document.getElementById(id);
+    if (el) el.classList.add('page-active');
+    var shell = document.getElementById('app-shell');
+    if (id === 'page-login') { shell.style.display = 'none'; }
+    else { shell.style.display = 'block'; }
+    window.scrollTo(0, 0);
+    var scroller = document.querySelector('.app-content');
+    if (scroller) scroller.scrollTop = 0;
+  }
+  function showSubPage(sub) {
+    var id = 'page-' + sub;
+    if (subPages.indexOf(id) === -1) return;
+    showPage('shell-wrap');
+    document.getElementById('app-shell').style.display = 'block';
+    subPages.forEach(function(p){ var el = document.getElementById(p); if (el) el.classList.remove('page-active'); });
+    document.getElementById(id).classList.add('page-active');
+    if (subHeaders[id]) {
+      document.getElementById('header-title').textContent = subHeaders[id].t;
+      document.getElementById('header-sub').textContent = subHeaders[id].s;
+    }
+    document.querySelectorAll('.sidebar-nav .nav-link').forEach(function(n){ n.classList.remove('active'); });
+    var nav = document.getElementById(navMap[id]);
+    if (nav) nav.classList.add('active');
+    var scroller = document.querySelector('.app-content');
+    if (scroller) scroller.scrollTop = 0;
+  }
+
+  function showLoading(title, sub) {
+    document.getElementById('loading-title').textContent = title;
+    document.getElementById('loading-sub').textContent = sub;
+    document.getElementById('loading-overlay').classList.add('active');
+  }
+  function hideLoading() { document.getElementById('loading-overlay').classList.remove('active'); }
+  function openModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModal() { document.querySelectorAll('.backdrop').forEach(function(b){ b.classList.remove('active'); }); }
+
+  function submitLogin() {
+    showLoading('Connexion…', 'Ouverture de votre espace.');
+    setTimeout(function(){
+      hideLoading();
+      document.getElementById('page-login').classList.remove('page-active');
+      document.getElementById('app-shell').style.display = 'block';
+      showSubPage('dashboard');
+    }, 1800);
+  }
+
+  function openAppointment() {
+    showSubPage('patient');
+  }
+
+  function saveConsult() {
+    showLoading('Enregistrement…', 'Consultation + ordonnance.');
+    setTimeout(function(){ hideLoading(); showSubPage('ordonnance'); }, 1800);
+  }
+
+  function printRx() {
+    showLoading('Préparation de l\'impression…', 'Document en cours.');
+    setTimeout(function(){ hideLoading(); showSubPage('queue'); }, 1800);
+  }
+
+  function saveCertif() {
+    showLoading('Certificat enregistré…', 'Prêt à imprimer.');
+    setTimeout(function(){ hideLoading(); showSubPage('done'); }, 1800);
+  }
+
+  // Bindings
+  function bind(id, fn) { var el = document.getElementById(id); if (el) { el.onclick = null; el.addEventListener('click', fn); } }
+
+  bind('btn-login',           function(e){ e.preventDefault(); submitLogin(); });
+  bind('nav-dashboard',       function(){ showSubPage('dashboard'); });
+  bind('nav-patients',        function(){ showSubPage('patients'); });
+  bind('nav-appointments',    function(){ showSubPage('appointments'); });
+  bind('nav-consultations',   function(){ showSubPage('consultation'); });
+  bind('nav-ordonnances',     function(){ showSubPage('ordonnance'); });
+  bind('nav-certificats',     function(){ showSubPage('certificat'); });
+  bind('nav-facturation',     function(){ showSubPage('facturation'); });
+  bind('nav-queue',           function(){ showSubPage('queue'); });
+  bind('patient-row-1',       function(){ showSubPage('patient'); });
+  bind('btn-new-consultation',function(){ showSubPage('consultation'); });
+  bind('btn-save-consult',    function(){ saveConsult(); });
+  bind('btn-print-rx',        function(){ printRx(); });
+  bind('btn-queue-qr',        function(){ openModal('modal-patient-view'); });
+  bind('btn-patient-view-close', function(){ closeModal(); });
+  bind('btn-queue-next',      function(){
+    // Visibly advance the queue: current patient becomes Hamidi (next in RDV lane)
+    var current = document.getElementById('queue-current');
+    if (current) {
+      current.innerHTML = '<div><div class="mute" style="color: rgba(255,255,255,.8); font-size: 11px; text-transform: uppercase; letter-spacing: .08em;">Appelé · en consultation</div><div style="display:flex; align-items:baseline; gap:16px; margin-top:8px;"><div class="queue-ticket">A-13</div><div><div class="queue-patient">Hamidi Rachid</div><div style="opacity:.85; font-size: 13px; margin-top: 2px;">Douleur thoracique · appelé à 10:30</div></div></div></div><div style="text-align: right;"><div style="opacity:.8; font-size: 11px; text-transform: uppercase; letter-spacing: .08em;">Notification</div><div style="font-size: 18px; font-weight: 600; margin-top:4px;">📱 envoyée</div></div>';
+    }
+  });
+  bind('btn-new-appt',        function(){ openModal('modal-new-appt'); });
+  bind('btn-modal-close',     function(){ closeModal(); });
+  bind('btn-modal-save',      function(){ closeModal(); showSubPage('appointments'); });
+  bind('btn-save-certif',     function(){ saveCertif(); });
+  bind('btn-shortcut-consult',function(){ showSubPage('consultation'); });
+  bind('btn-shortcut-patient',function(){ showSubPage('patients'); });
+  bind('btn-shortcut-appt',   function(){ openModal('modal-new-appt'); });
+
+  // ── Amira AI assistant ──
+  function openAmira() {
+    document.getElementById('amira-suggest').classList.remove('active');
+    document.getElementById('amira-panel').classList.add('active');
+  }
+  function closeAmira() {
+    document.getElementById('amira-panel').classList.remove('active');
+  }
+  function addAmiraMsg(kind, text) {
+    var body = document.getElementById('amira-body');
+    var d = document.createElement('div');
+    d.className = 'amira-msg ' + kind;
+    d.textContent = text;
+    body.appendChild(d);
+    body.scrollTop = body.scrollHeight;
+  }
+  function amiraAsk(q, answer) {
+    addAmiraMsg('me', q);
+    setTimeout(function(){ addAmiraMsg('her', answer); }, 700);
+  }
+  function amiraSuggest(text) {
+    var s = document.getElementById('amira-suggest');
+    document.getElementById('amira-suggest-body').textContent = text;
+    s.classList.add('active');
+    setTimeout(function(){ s.classList.remove('active'); }, 6000);
+  }
+
+  bind('btn-amira-fab',          function(){ openAmira(); });
+  bind('btn-amira-close',        function(){ closeAmira(); });
+  bind('amira-chip-summary',     function(){ amiraAsk('Résume-moi la journée.', "14 consultations · 42 000 DA encaissés · 11 ordonnances. Votre ratio HTA/diabète est en hausse ce mois-ci."); });
+  bind('amira-chip-nextpatient', function(){ amiraAsk('Quel est le prochain patient ?', "Hamidi Rachid, 61 ans. Motif : douleur thoracique. Dernière visite en novembre 2025 pour céphalées. TA alors 14/9."); });
+  bind('amira-chip-interactions',function(){ amiraAsk('Vérifie les interactions.', "Amlodipine + Paracétamol : aucune interaction cliniquement pertinente. Dosage compatible avec l'historique."); });
+  bind('amira-chip-certif',      function(){ amiraAsk('Rédige un certificat.', "Je pré-remplis un certificat d'aptitude au travail, 7 jours. Cliquez sur l'icône Certificats dans la barre latérale pour le réviser."); });
+  bind('btn-amira-send',         function(){
+    var inp = document.getElementById('amira-input');
+    var v = (inp.value || '').trim();
+    if (!v) return;
+    addAmiraMsg('me', v);
+    inp.value = '';
+    setTimeout(function(){ addAmiraMsg('her', "Bien noté. Je prépare ça pour vous."); }, 700);
+  });
+
+  // Auto-show Amira suggestion bubble on page load (since login is skipped)
+  setTimeout(function(){ amiraSuggest("Bonjour Dr. Nour ! Votre premier patient arrive à 9h00."); }, 1500);
+</script>
+
+</body>
+</html>

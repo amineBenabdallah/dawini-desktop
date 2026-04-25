@@ -1,0 +1,22 @@
+[
+  { "dci": "Paracétamol", "category": "Antalgique / Antipyrétique", "route": "orale", "notes": "500mg-1g, max 4g/j. Première intention douleur légère-modérée." },
+  { "dci": "Ibuprofène", "category": "AINS", "route": "orale", "notes": "200-400mg x3/j. CI: insuffisance rénale, ulcère gastrique, grossesse T3." },
+  { "dci": "Amoxicilline", "category": "Antibiotique (pénicilline)", "route": "orale", "notes": "500mg-1g x2-3/j. Angine, otite, pneumopathie communautaire." },
+  { "dci": "Amoxicilline + Ac. Clavulanique", "category": "Antibiotique (pénicilline + inhibiteur)", "route": "orale", "notes": "1g x3/j. Sinusite, pneumopathie, infection urinaire compliquée." },
+  { "dci": "Azithromycine", "category": "Antibiotique (macrolide)", "route": "orale", "notes": "500mg J1 puis 250mg J2-J5. Alternative si allergie péni." },
+  { "dci": "Ciprofloxacine", "category": "Antibiotique (fluoroquinolone)", "route": "orale", "notes": "500mg x2/j. Infection urinaire, prostatite. CI: enfant, grossesse." },
+  { "dci": "Métformine", "category": "Antidiabétique oral (biguanide)", "route": "orale", "notes": "500-1000mg x2/j. 1ère intention diabète type 2. CI: IR (DFG<30)." },
+  { "dci": "Gliclazide", "category": "Antidiabétique oral (sulfamide)", "route": "orale", "notes": "30-120mg LP /j. 2ème intention si HbA1c >7% sous metformine." },
+  { "dci": "Insuline rapide", "category": "Insuline", "route": "SC", "notes": "Dose selon glycémie. Diabète type 1, type 2 insulinorequérant." },
+  { "dci": "Amlodipine", "category": "Antihypertenseur (ICa)", "route": "orale", "notes": "5-10mg /j. HTA, angor. Peut être associé à IEC/ARA2." },
+  { "dci": "Périndopril", "category": "Antihypertenseur (IEC)", "route": "orale", "notes": "5-10mg /j. HTA, insuffisance cardiaque. CI: grossesse, hyperkaliémie." },
+  { "dci": "Losartan", "category": "Antihypertenseur (ARA2)", "route": "orale", "notes": "50-100mg /j. Alternative à IEC si toux. CI: grossesse." },
+  { "dci": "Atorvastatine", "category": "Hypolipémiant (statine)", "route": "orale", "notes": "10-80mg /j au coucher. Prévention cardiovasculaire." },
+  { "dci": "Oméprazole", "category": "IPP (anti-ulcéreux)", "route": "orale", "notes": "20-40mg /j. Ulcère, RGO. Limiter durée (risque ostéoporose)." },
+  { "dci": "Salbutamol", "category": "Bronchodilatateur (β2)", "route": "inhalation", "notes": "2 bouffées à la demande. Asthme, BPCO. Max 8 bouffées/j." },
+  { "dci": "Prednisolone", "category": "Corticoïde", "route": "orale", "notes": "0.5-1mg/kg/j. Courte durée. Asthme aigu, allergie sévère." },
+  { "dci": "Diclofénac", "category": "AINS", "route": "orale/IM", "notes": "50mg x2-3/j (max 150mg/j). Douleur inflammatoire, rhumatologie." },
+  { "dci": "Métoclopramide", "category": "Antiémétique", "route": "orale/IM", "notes": "10mg x3/j. Nausées, vomissements. CI: enfant <1 an." },
+  { "dci": "Furosémide", "category": "Diurétique de l'anse", "route": "orale/IV", "notes": "20-80mg /j. Œdème, insuffisance cardiaque, HTA résistante." },
+  { "dci": "Acide acétylsalicylique", "category": "Antiagrégant", "route": "orale", "notes": "75-100mg /j. Prévention cardiovasculaire. CI: ulcère actif." }
+]

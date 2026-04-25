@@ -1,0 +1,200 @@
+@if (loading()) {
+  <app-loading-spinner />
+} @else if (error()) {
+  <div class="text-center py-5">
+    <i class="bi bi-exclamation-triangle fs-2 text-warning d-block mb-2"></i>
+    <p class="text-muted">{{ error() }}</p>
+    <button class="btn btn-sm btn-outline-primary" (click)="goBack()">Retour à la liste</button>
+  </div>
+} @else if (consultation(); as c) {
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-secondary" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div>
+        <h5 class="mb-0 fw-semibold">Consultation</h5>
+        <p class="text-muted small mb-0">{{ formatDate(c.dateConsultation) }}</p>
+      </div>
+      <app-status-badge [status]="c.statut" />
+    </div>
+
+    <div class="d-flex gap-2">
+      @if (canEdit()) {
+        <button class="btn btn-sm btn-outline-primary" (click)="goEdit()">
+          <i class="bi bi-pencil me-1"></i>Modifier
+        </button>
+      }
+      @if (canCreateOrdonnance()) {
+        <button class="btn btn-sm btn-outline-primary" (click)="goCreateOrdonnance()">
+          <i class="bi bi-file-medical me-1"></i>Ordonnance
+        </button>
+      }
+      @if (canFinalize()) {
+        <button class="btn btn-sm btn-success" (click)="showFinalizeModal.set(true)" [disabled]="finalizing()">
+          <i class="bi bi-check-circle me-1"></i>Finaliser
+        </button>
+      }
+      @if (canCreateInvoice()) {
+        <button class="btn btn-sm btn-outline-warning" (click)="openInvoiceModal()">
+          <i class="bi bi-receipt me-1"></i>Émettre une facture
+        </button>
+      }
+      <button class="btn btn-sm btn-outline-secondary" (click)="goPrint()">
+        <i class="bi bi-printer me-1"></i>Imprimer
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Left column: clinical data -->
+    <div class="col-lg-8">
+      <!-- Patient + Motif -->
+      <div class="cm-card mb-3">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <span class="text-muted small">Patient</span>
+            <div class="fw-semibold">{{ c.patient?.firstName }} {{ c.patient?.lastName }}</div>
+          </div>
+          <div class="text-end">
+            <span class="text-muted small">Date</span>
+            <div class="fw-medium small">{{ formatDateTime(c.dateConsultation) }}</div>
+          </div>
+        </div>
+        <div>
+          <span class="text-muted small">Motif de consultation</span>
+          <div class="mt-1">{{ c.motif }}</div>
+        </div>
+      </div>
+
+      <!-- Clinical fields -->
+      @if (c.examenClinique || c.diagnostic || c.traitement || c.notes) {
+        <div class="cm-card mb-3">
+          @if (c.examenClinique) {
+            <div class="mb-3">
+              <span class="text-muted small fw-medium">Examen clinique</span>
+              <div class="mt-1" style="white-space: pre-wrap;">{{ c.examenClinique }}</div>
+            </div>
+          }
+          @if (c.diagnostic) {
+            <div class="mb-3">
+              <span class="text-muted small fw-medium">Diagnostic</span>
+              <div class="mt-1" style="white-space: pre-wrap;">{{ c.diagnostic }}</div>
+            </div>
+          }
+          @if (c.traitement) {
+            <div class="mb-3">
+              <span class="text-muted small fw-medium">Traitement</span>
+              <div class="mt-1" style="white-space: pre-wrap;">{{ c.traitement }}</div>
+            </div>
+          }
+          @if (c.notes) {
+            <div>
+              <span class="text-muted small fw-medium">Notes</span>
+              <div class="mt-1" style="white-space: pre-wrap;">{{ c.notes }}</div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Attachments -->
+      <div class="cm-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="fw-medium small">Pièces jointes ({{ (c.attachments?.length ?? 0) }})</span>
+          @if (canUpload()) {
+            <label class="btn btn-sm btn-outline-primary mb-0" [class.disabled]="uploading()">
+              <i class="bi bi-upload me-1"></i>
+              @if (uploading()) { Envoi… } @else { Ajouter }
+              <input type="file" class="d-none" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)" [disabled]="uploading()" />
+            </label>
+          }
+        </div>
+        @if ((c.attachments?.length ?? 0) > 0) {
+          <div class="list-group list-group-flush">
+            @for (att of c.attachments; track att.id) {
+              <a [href]="downloadUrl(att)" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center gap-2 px-0">
+                <i class="bi {{ fileIcon(att.mimeType) }} fs-5"></i>
+                <div class="flex-grow-1">
+                  <div class="small fw-medium">{{ att.originalName }}</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">{{ formatFileSize(att.sizeBytes) }}</div>
+                </div>
+                <i class="bi bi-download text-muted"></i>
+              </a>
+            }
+          </div>
+        } @else {
+          <p class="text-muted small mb-0">Aucune pièce jointe</p>
+        }
+      </div>
+    </div>
+
+    <!-- Right column: vitals -->
+    <div class="col-lg-4">
+      <div class="cm-card">
+        <h6 class="fw-semibold mb-3"><i class="bi bi-heart-pulse me-1"></i>Constantes</h6>
+        <div class="mb-2">
+          <span class="text-muted small">Tension artérielle</span>
+          <div class="fw-medium">{{ c.tensionArterielle ?? '—' }}</div>
+        </div>
+        <div class="mb-2">
+          <span class="text-muted small">Poids</span>
+          <div class="fw-medium">{{ c.poids != null ? c.poids + ' kg' : '—' }}</div>
+        </div>
+        <div>
+          <span class="text-muted small">Température</span>
+          <div class="fw-medium">{{ c.temperature != null ? c.temperature + ' °C' : '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Finalize confirmation modal -->
+  <app-confirm-modal
+    [visible]="showFinalizeModal()"
+    title="Finaliser la consultation"
+    message="Cette action est irréversible. La consultation ne pourra plus être modifiée."
+    confirmLabel="Finaliser"
+    confirmVariant="success"
+    confirmIcon="bi-check-circle"
+    (confirm)="confirmFinalize()"
+    (cancel)="showFinalizeModal.set(false)"
+  />
+
+  <!-- Invoice creation modal -->
+  @if (showInvoiceModal()) {
+    <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.45)" (click)="showInvoiceModal.set(false)">
+      <div class="modal-dialog modal-dialog-centered modal-sm" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-semibold">Émettre une facture</h5>
+            <button type="button" class="btn-close" (click)="showInvoiceModal.set(false)"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label small text-muted mb-1">Montant total (DA) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" [(ngModel)]="invoiceAmount"
+                     placeholder="ex: 2500" min="1" step="0.01" />
+            </div>
+            <div>
+              <label class="form-label small text-muted mb-1">Notes (optionnel)</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="invoiceNotes"
+                        placeholder="Notes sur la facture..." maxlength="500"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer border-0 pt-0">
+            <button class="btn btn-outline-secondary btn-sm" (click)="showInvoiceModal.set(false)" [disabled]="invoiceSaving()">Annuler</button>
+            <button class="btn btn-primary btn-sm px-4" (click)="createInvoice()"
+                    [disabled]="!invoiceAmount || +invoiceAmount <= 0 || invoiceSaving()">
+              @if (invoiceSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              Créer la facture
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+}

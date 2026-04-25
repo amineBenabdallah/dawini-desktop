@@ -1,0 +1,51 @@
+@if (loading()) {
+  <div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+} @else if (error()) {
+  <div class="text-center p-5 text-danger">{{ error() }}</div>
+} @else if (data(); as d) {
+  <div class="print-page">
+    <div class="print-header">
+      <div>
+        <div class="fw-bold">Dr {{ d.docteur.firstName }} {{ d.docteur.lastName }}</div>
+        @if (d.docteur.specialite) { <div class="text-muted small">{{ d.docteur.specialite }}</div> }
+      </div>
+      <div class="text-end">
+        <div class="fw-medium text-primary text-uppercase" style="font-size:11pt">{{ typeLabels[d.type] ?? d.type }}</div>
+        <div class="text-muted small">N° {{ d.numero }} — {{ formatDate(d.createdAt) }}</div>
+      </div>
+    </div>
+
+    <hr />
+
+    <p style="margin: 1.5rem 0">
+      Je soussigné, <strong>Dr {{ d.docteur.firstName }} {{ d.docteur.lastName }}</strong>
+      @if (d.docteur.specialite) { , {{ d.docteur.specialite }} }
+      , certifie avoir examiné ce jour
+      <strong>{{ d.patient.firstName }} {{ d.patient.lastName }}</strong>
+      @if (d.patient.dateNaissance) { , né(e) le {{ formatDate(d.patient.dateNaissance) }} }.
+    </p>
+
+    <div style="white-space: pre-wrap; line-height: 1.8; margin: 1.5rem 0;">{{ d.content }}</div>
+
+    @if (d.joursRepos) {
+      <p>Un repos médical de <strong>{{ d.joursRepos }} jour(s)</strong> est prescrit à compter de ce jour.</p>
+    }
+
+    <div class="print-signature">
+      <div class="text-muted small mb-1">Fait le {{ formatDate(d.createdAt) }}</div>
+      <div class="text-muted small mb-2">Cachet et signature</div>
+      <div class="signature-box"></div>
+    </div>
+  </div>
+}
+
+<style>
+  html, body { background: #fff !important; color: #212529 !important; }
+  .print-page { padding: 2cm; font-family: 'Segoe UI', sans-serif; max-width: 21cm; margin: auto; font-size: 12pt; background: #fff; color: #212529; }
+  .print-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .print-signature { margin-top: 3rem; text-align: right; }
+  .signature-box { width: 120px; height: 80px; border: 1px solid #ccc; border-radius: 4px; display: inline-block; }
+  @media print { @page { size: A4; margin: 1.5cm; } }
+</style>

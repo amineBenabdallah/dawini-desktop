@@ -1,0 +1,68 @@
+appId: com.dawini.desktop
+productName: Dawini
+copyright: Copyright © 2026 Dawini
+
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - dist/**/*
+  - app/dist/**/*
+  - resources/**/*
+  - "!**/*.ts"
+  - "!**/*.map"
+
+extraResources:
+  - from: resources/sounds/
+    to: sounds/
+    filter:
+      - "**/*"
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: resources/icons/icon.ico
+  artifactName: Dawini-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: resources/icons/icon.ico
+  uninstallerIcon: resources/icons/icon.ico
+  installerHeaderIcon: resources/icons/icon.ico
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Dawini
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  icon: resources/icons/icon.icns
+  category: public.app-category.medical
+  artifactName: Dawini-${version}-${arch}.${ext}
+
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+  icon: resources/icons/icon.png
+  category: Office
+  artifactName: Dawini-${version}.${ext}
+
+publish:
+  provider: github
+  owner: amineBenabdallah
+  repo: dawini-desktop
+  releaseType: release

@@ -1,0 +1,215 @@
+<app-page-header
+  title="Ordonnances"
+  [subtitle]="total() + ' ordonnance(s)'"
+  [actionLabel]="canCreate() ? 'Nouvelle ordonnance' : ''"
+  (action)="createNew()"
+/>
+
+<!-- Filters -->
+<div class="cm-card mb-3">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" (click)="showFilters.set(!showFilters())">
+      <i class="bi bi-funnel"></i> Filtres
+    </button>
+    @if (filterDateFrom || filterDateTo) {
+      <button class="btn btn-sm btn-link text-muted" (click)="resetFilters()">Réinitialiser</button>
+    }
+  </div>
+
+  @if (showFilters()) {
+    <div class="row g-2 mt-1">
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">Date début</label>
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="filterDateFrom" (change)="applyFilters()" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">Date fin</label>
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="filterDateTo" (change)="applyFilters()" />
+      </div>
+    </div>
+  }
+</div>
+
+<div class="cm-card">
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else {
+
+    <!-- Desktop table (md+) -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Date</th>
+            <th>Patient</th>
+            <th>Médicaments</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of ordonnances(); track o.id) {
+            <tr class="cursor-pointer" (click)="viewDetail(o.id)">
+              <td class="fw-medium text-primary small">{{ o.numero }}</td>
+              <td class="text-muted small">{{ formatDate(o.dateEmission || o.createdAt) }}</td>
+              <td>{{ o.patient?.firstName }} {{ o.patient?.lastName }}</td>
+              <td class="text-muted small">
+                @if (o.lignesCount) {
+                  <span class="badge text-bg-light border">{{ o.lignesCount }} médicament{{ o.lignesCount > 1 ? 's' : '' }}</span>
+                } @else {
+                  —
+                }
+              </td>
+              <td><app-status-badge [status]="o.statut" /></td>
+              <td class="text-end d-flex gap-2 justify-content-end">
+                <button class="btn btn-sm btn-outline-primary" title="Voir" (click)="viewDetail(o.id); $event.stopPropagation()">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" title="Imprimer" (click)="printOrdonnance(o.id, $event)">
+                  <i class="bi bi-printer"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center text-muted py-5">
+                <i class="bi bi-file-medical fs-2 d-block mb-2 opacity-25"></i>
+                Aucune ordonnance
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile card list (xs/sm) -->
+    <ul class="list-unstyled mb-0 d-md-none">
+      @for (o of ordonnances(); track o.id) {
+        <li class="list-card" (click)="viewDetail(o.id)">
+          <div class="list-card__body">
+            <div class="list-card__title">{{ o.patient?.firstName }} {{ o.patient?.lastName }}</div>
+            <div class="list-card__sub">{{ o.numero }} · {{ formatDate(o.dateEmission || o.createdAt) }}
+              @if (o.lignesCount) { · {{ o.lignesCount }} méd. }
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <app-status-badge [status]="o.statut" />
+            <button class="btn btn-sm btn-outline-secondary p-1" (click)="printOrdonnance(o.id, $event); $event.stopPropagation()">
+              <i class="bi bi-printer"></i>
+            </button>
+            <i class="bi bi-chevron-right list-card__arrow"></i>
+          </div>
+        </li>
+      } @empty {
+        <li class="text-center text-muted py-5">
+          <i class="bi bi-file-medical fs-2 d-block mb-2 opacity-25"></i>Aucune ordonnance
+        </li>
+      }
+    </ul>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <nav class="d-flex justify-content-center mt-3 px-3 pb-2">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item" [class.disabled]="page() === 1">
+            <button class="page-link" (click)="setPage(page() - 1)">&laquo;</button>
+          </li>
+          @for (p of pages(); track p) {
+            <li class="page-item" [class.active]="p === page()">
+              <button class="page-link" (click)="setPage(p)">{{ p }}</button>
+            </li>
+          }
+          <li class="page-item" [class.disabled]="page() === totalPages()">
+            <button class="page-link" (click)="setPage(page() + 1)">&raquo;</button>
+          </li>
+        </ul>
+      </nav>
+    }
+  }
+</div>
+
+<style>
+  .list-card {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .75rem 1rem; border-bottom: 1px solid #f1f5f9;
+    cursor: pointer; transition: background .12s; min-height: 56px;
+  }
+  .list-card:last-child { border-bottom: none; }
+  .list-card:hover, .list-card:active { background: #f8fafc; }
+  .list-card__body { flex: 1 1 0; min-width: 0; }
+  .list-card__title { font-size: .88rem; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-card__sub { font-size: .75rem; color: #64748b; margin-top: .1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-card__arrow { color: #cbd5e1; font-size: .82rem; flex-shrink: 0; }
+</style>
+
+<!-- ── Ordonnance detail modal ─────────────────────────────── -->
+@if (showDetailModal()) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.45)" (click)="closeDetailModal()">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          @if (selectedOrd(); as o) {
+            <div>
+              <h5 class="modal-title fw-semibold mb-0">{{ o.numero }}</h5>
+              <span class="text-muted small">{{ formatDate(o.dateEmission || o.createdAt) }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <app-status-badge [status]="o.statut" />
+              <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
+            </div>
+          } @else {
+            <h5 class="modal-title">Ordonnance</h5>
+            <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
+          }
+        </div>
+        <div class="modal-body">
+          @if (detailLoading()) {
+            <div class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></div>
+          } @else if (selectedOrd(); as o) {
+            <div class="mb-3">
+              <span class="text-muted small">Patient</span>
+              <div class="fw-semibold">{{ o.patient?.firstName }} {{ o.patient?.lastName }}</div>
+            </div>
+
+            <h6 class="fw-semibold mb-2"><i class="bi bi-capsule me-1"></i>Médicaments ({{ o.lignes?.length ?? 0 }})</h6>
+            @if ((o.lignes?.length ?? 0) > 0) {
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead><tr><th>#</th><th>Médicament</th><th>Dosage</th><th>Fréquence</th><th>Durée</th><th>Instructions</th></tr></thead>
+                  <tbody>
+                    @for (l of o.lignes; track l.id; let i = $index) {
+                      <tr>
+                        <td class="text-muted">{{ i + 1 }}</td>
+                        <td class="fw-medium">{{ l.medicament }}</td>
+                        <td class="small">{{ l.dosage }}</td>
+                        <td class="small">{{ l.frequence }}</td>
+                        <td class="small">{{ l.duree }}</td>
+                        <td class="text-muted small">{{ l.instructions || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="text-muted small mb-0">Aucun médicament</p>
+            }
+          }
+        </div>
+        @if (selectedOrd(); as o) {
+          <div class="modal-footer">
+            @if (canCreate()) {
+              <button class="btn btn-sm btn-outline-primary" (click)="goEdit(o.id); closeDetailModal()">
+                <i class="bi bi-pencil me-1"></i>Modifier
+              </button>
+            }
+            <button class="btn btn-sm btn-outline-secondary" (click)="printOrdonnance(o.id, $event)">
+              <i class="bi bi-printer me-1"></i>Imprimer
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="closeDetailModal()">Fermer</button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

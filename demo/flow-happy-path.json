@@ -1,0 +1,267 @@
+{
+  "name": "Dawini — Happy Path Demo",
+  "voice": "fr-FR-DeniseNeural",
+  "prototype": "prototype.html",
+  "phases": [
+    {
+      "name": "Bonjour",
+      "steps": [
+        {
+          "id": 1,
+          "action": "wait",
+          "target": "#page-dashboard",
+          "value": "3000",
+          "narration": "Bonjour. Voici Dawini, l'espace du Dr. Nour Amari, médecin à Alger. Tout tourne en local, sur son poste."
+        },
+        {
+          "id": 2,
+          "action": "hover",
+          "target": "#appt-row-1",
+          "narration": "Quatorze patients vus ce matin, sept rendez-vous à venir."
+        }
+      ]
+    },
+    {
+      "name": "Amira",
+      "steps": [
+        {
+          "id": 3,
+          "action": "hover",
+          "target": "#btn-amira-fab",
+          "narration": "Et voilà Amira, l'assistante IA. Elle est là, sur chaque page, pour aider."
+        },
+        {
+          "id": 4,
+          "action": "click",
+          "target": "#btn-amira-fab",
+          "narration": "On lui parle."
+        },
+        {
+          "id": 5,
+          "action": "wait",
+          "target": "#amira-panel",
+          "value": "4000",
+          "narration": "Elle connaît chaque dossier. Elle vérifie les interactions médicamenteuses, résume l'historique, rédige un projet de certificat — à la demande."
+        },
+        {
+          "id": 6,
+          "action": "click",
+          "target": "#amira-chip-nextpatient",
+          "narration": "Par exemple : qui est le prochain ?"
+        },
+        {
+          "id": 7,
+          "action": "wait",
+          "target": "#amira-body",
+          "value": "4500",
+          "narration": "Hamidi Rachid, soixante-et-un ans. Douleur thoracique. Dernière tension élevée. Tout est déjà là, sans ouvrir le dossier."
+        },
+        {
+          "id": 8,
+          "action": "click",
+          "target": "#btn-amira-close",
+          "narration": "Je referme."
+        }
+      ]
+    },
+    {
+      "name": "Patient",
+      "steps": [
+        {
+          "id": 9,
+          "action": "click",
+          "target": "#appt-row-1",
+          "narration": "Ouvrons le dossier."
+        },
+        {
+          "id": 10,
+          "action": "wait",
+          "target": "#page-patient",
+          "value": "5000",
+          "narration": "Bensalem Yasmine, trente-quatre ans. Historique, traitements, allergies — tout d'un regard. Amira peut résumer les dernières visites ou suggérer un suivi."
+        }
+      ]
+    },
+    {
+      "name": "Consultation",
+      "steps": [
+        {
+          "id": 11,
+          "action": "click",
+          "target": "#btn-new-consultation",
+          "narration": "Nouvelle consultation."
+        },
+        {
+          "id": 12,
+          "action": "wait",
+          "target": "#page-consultation",
+          "value": "5000",
+          "narration": "Motif, examen, diagnostic — préremplis à partir du dossier. Amira vérifie les interactions au moment où j'ajoute un médicament."
+        },
+        {
+          "id": 13,
+          "action": "click",
+          "target": "#btn-save-consult",
+          "narration": "Je sauvegarde."
+        }
+      ]
+    },
+    {
+      "name": "Ordonnance",
+      "steps": [
+        {
+          "id": 14,
+          "action": "wait",
+          "target": "body",
+          "value": "2200",
+          "narration": "Chiffrée, locale."
+        },
+        {
+          "id": 15,
+          "action": "wait",
+          "target": "#page-ordonnance",
+          "value": "4000",
+          "narration": "Ordonnance générée automatiquement, signature intégrée, prête à imprimer ou envoyer par email."
+        }
+      ]
+    },
+    {
+      "name": "File attente",
+      "steps": [
+        {
+          "id": 16,
+          "action": "click",
+          "target": "#nav-queue",
+          "narration": "Passons à la file d'attente."
+        },
+        {
+          "id": 17,
+          "action": "wait",
+          "target": "#page-queue",
+          "value": "5000",
+          "narration": "Deux files : les rendez-vous d'un côté, les walk-ins de l'autre. Chaque patient scanne un QR code à l'entrée et apparaît ici automatiquement."
+        },
+        {
+          "id": 18,
+          "action": "click",
+          "target": "#btn-queue-qr",
+          "narration": "Voyons ce que le patient voit."
+        },
+        {
+          "id": 19,
+          "action": "wait",
+          "target": "#modal-patient-view",
+          "value": "5000",
+          "narration": "Sur son téléphone : son ticket, sa position dans la file, le temps d'attente estimé. Plus besoin de rester debout dans la salle."
+        },
+        {
+          "id": 20,
+          "action": "click",
+          "target": "#btn-patient-view-close",
+          "narration": "Je referme l'aperçu."
+        },
+        {
+          "id": 21,
+          "action": "hover",
+          "target": "#btn-queue-next",
+          "narration": "De retour sur la file d'attente."
+        },
+        {
+          "id": 22,
+          "action": "click",
+          "target": "#btn-queue-next",
+          "narration": "J'appelle le suivant."
+        },
+        {
+          "id": 23,
+          "action": "wait",
+          "target": "#queue-current",
+          "value": "4000",
+          "narration": "Hamidi est appelé. Il reçoit une notification sur son téléphone et vient à la consultation."
+        }
+      ]
+    },
+    {
+      "name": "Autres pages",
+      "steps": [
+        {
+          "id": 24,
+          "action": "click",
+          "target": "#nav-appointments",
+          "narration": "L'agenda de la semaine."
+        },
+        {
+          "id": 25,
+          "action": "wait",
+          "target": "#page-appointments",
+          "value": "4500",
+          "narration": "Une vue claire des rendez-vous. Amira peut trouver un créneau libre en quelques secondes."
+        },
+        {
+          "id": 26,
+          "action": "click",
+          "target": "#nav-facturation",
+          "narration": "La facturation."
+        },
+        {
+          "id": 27,
+          "action": "wait",
+          "target": "#page-facturation",
+          "value": "4500",
+          "narration": "Payées, partielles, impayées — le suivi est clair. Amira génère le rapport mensuel d'un clic."
+        }
+      ]
+    },
+    {
+      "name": "Fin de journee",
+      "steps": [
+        {
+          "id": 28,
+          "action": "click",
+          "target": "#nav-certificats",
+          "narration": "Un dernier certificat."
+        },
+        {
+          "id": 29,
+          "action": "wait",
+          "target": "#page-certificat",
+          "value": "3500",
+          "narration": "Amira prérempli le motif, la signature est intégrée."
+        },
+        {
+          "id": 30,
+          "action": "click",
+          "target": "#btn-save-certif",
+          "narration": "Enregistré."
+        },
+        {
+          "id": 31,
+          "action": "wait",
+          "target": "body",
+          "value": "2200",
+          "narration": "Sauvegarde locale."
+        },
+        {
+          "id": 32,
+          "action": "wait",
+          "target": "#page-done",
+          "value": "4000",
+          "narration": "Fin de journée. Quatorze consultations, onze ordonnances, trois certificats."
+        },
+        {
+          "id": 33,
+          "action": "hover",
+          "target": "#done-card",
+          "narration": "Et aucune donnée n'a quitté le cabinet."
+        },
+        {
+          "id": 34,
+          "action": "wait",
+          "target": "body",
+          "value": "10000",
+          "narration": "Dawini. Votre cabinet à votre rythme, Amira en assistante, vos patients au centre. Tout en local, sans cloud."
+        }
+      ]
+    }
+  ]
+}

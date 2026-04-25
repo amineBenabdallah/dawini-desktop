@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dawini Desktop — Scénarios Happy Path</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ── Reset ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Variables (Hayy Design System) ────────────────── */
+:root {
+  --bg:       #f7f6f3;
+  --surface:  #ffffff;
+  --surface2: #f0ede8;
+  --border:   #e2ddd6;
+  --border2:  #d4cfc8;
+  --text:     #1a1714;
+  --muted:    #7a7068;
+  --faint:    #b5afa6;
+
+  --green:       #1a7a35;
+  --green-bg:    #edf7f0;
+  --green-border:#b8dfc4;
+  --red:         #c0392b;
+  --red-bg:      #fdf0ef;
+  --red-border:  #f5bcb8;
+  --amber:       #92600a;
+  --amber-bg:    #fdf6e8;
+  --amber-border:#f0d49a;
+  --purple:      #5b3fb5;
+  --purple-bg:   #f2effe;
+  --purple-border:#c5b8f5;
+  --blue:        #1a5fa8;
+  --blue-bg:     #eef4fd;
+  --blue-border: #b0ccf0;
+  --coral:       #c0510a;
+  --coral-bg:    #fef2ea;
+  --coral-border:#f5c49a;
+
+  --font-heading: 'Fraunces', serif;
+  --font-body:    'DM Sans', sans-serif;
+  --radius-card:  12px;
+  --radius-sm:    8px;
+  --radius-badge: 20px;
+}
+
+/* ── Base ──────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ── Container ─────────────────────────────────────── */
+.container { max-width: 960px; margin: 0 auto; padding: 0 32px; }
+
+/* ── Header ────────────────────────────────────────── */
+.hero {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--surface2) 100%);
+  padding: 64px 0 48px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.hero-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.hero-logo svg { width: 48px; height: 48px; }
+.hero-logo h1 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 48px;
+  letter-spacing: -1px;
+  color: var(--text);
+}
+.hero-logo h1 span { color: var(--green); }
+.hero-tagline {
+  font-family: var(--font-body);
+  font-size: 17px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.hero-subtitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.hero-meta {
+  font-size: 13px;
+  color: var(--faint);
+}
+
+/* ── Navigation / TOC ──────────────────────────────── */
+.toc {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+  overflow-x: auto;
+}
+.toc-inner {
+  display: flex;
+  gap: 0;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+.toc a {
+  display: block;
+  padding: 14px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.toc a:hover, .toc a.active {
+  color: var(--text);
+  border-bottom-color: var(--green);
+}
+
+/* ── Phase / Section ───────────────────────────────── */
+.phase {
+  padding: 48px 0 32px;
+}
+.phase + .phase { border-top: 1px solid var(--border); }
+.phase-eyebrow {
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.phase-title {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 30px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.phase-desc {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 32px;
+  max-width: 640px;
+}
+
+/* ── Scenario Card ─────────────────────────────────── */
+.scenario {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.scenario-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--border);
+}
+.scenario-header:hover { background: var(--surface2); }
+.scenario-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--green-bg);
+  color: var(--green);
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.scenario-title {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 18px;
+  flex: 1;
+}
+.scenario-role {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 4px 12px;
+  border-radius: var(--radius-badge);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.role-admin    { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); }
+.role-docteur  { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border); }
+.role-secretaire { background: var(--blue-bg); color: var(--blue);   border: 1px solid var(--blue-border); }
+.role-patient  { background: var(--coral-bg);  color: var(--coral);  border: 1px solid var(--coral-border); }
+.role-all      { background: var(--amber-bg);  color: var(--amber);  border: 1px solid var(--amber-border); }
+.scenario-chevron {
+  font-size: 18px;
+  color: var(--faint);
+  transition: transform .2s;
+}
+.scenario.open .scenario-chevron { transform: rotate(90deg); }
+.scenario-body {
+  display: none;
+  padding: 24px;
+}
+.scenario.open .scenario-body { display: block; }
+
+/* ── Step ──────────────────────────────────────────── */
+.step {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--surface2);
+}
+.step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.step-content { flex: 1; }
+.step-action {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.step-detail {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.step-detail code {
+  font-size: 13px;
+  background: var(--surface2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text);
+}
+.step-data {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.step-data table { width: 100%; border-collapse: collapse; }
+.step-data td { padding: 3px 0; vertical-align: top; }
+.step-data td:first-child {
+  font-weight: 500;
+  color: var(--text);
+  width: 180px;
+  padding-right: 12px;
+}
+.step-data td:last-child { color: var(--muted); }
+
+/* ── Result Attendu ────────────────────────────────── */
+.result {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--green-bg);
+  border: 1px solid var(--green-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--green);
+  margin-top: 8px;
+}
+.result-icon { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+
+/* ── Warning / Note ────────────────────────────────── */
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--amber);
+  margin-top: 8px;
+}
+.note-icon { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+
+/* ── Info box ──────────────────────────────────────── */
+.info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--blue);
+  margin-top: 8px;
+}
+.info-icon { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+
+/* ── Prereqs box ───────────────────────────────────── */
+.prereqs {
+  background: var(--purple-bg);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--purple);
+}
+.prereqs strong { display: block; margin-bottom: 4px; }
+
+/* ── Duration badge ────────────────────────────────── */
+.duration {
+  font-size: 12px;
+  color: var(--faint);
+  margin-left: auto;
+  padding: 4px 10px;
+  background: var(--surface2);
+  border-radius: var(--radius-badge);
+  white-space: nowrap;
+}
+
+/* ── Footer ────────────────────────────────────────── */
+.footer {
+  padding: 48px 0;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.footer p { font-size: 13px; color: var(--faint); }
+.footer a { color: var(--green); text-decoration: none; }
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 640px) {
+  .container { padding: 0 16px; }
+  .hero { padding: 40px 16px 32px; }
+  .hero-logo h1 { font-size: 36px; }
+  .phase-title { font-size: 24px; }
+  .scenario-header { flex-wrap: wrap; gap: 8px; padding: 16px; }
+  .scenario-body { padding: 16px; }
+  .step { flex-direction: column; gap: 8px; }
+  .step-data td:first-child { width: 140px; }
+  .toc-inner { padding: 0 16px; }
+  .toc a { padding: 12px 12px; font-size: 12px; }
+}
+
+/* ── Print ─────────────────────────────────────────── */
+@media print {
+  .toc { position: static; }
+  .scenario-body { display: block !important; }
+  .scenario-chevron { display: none; }
+  .phase { break-inside: avoid; }
+  body { font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- HERO                                              -->
+<!-- ══════════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="container">
+    <div class="hero-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+        <rect width="32" height="32" rx="6" fill="#1a7a35"/>
+        <rect x="13" y="7" width="6" height="18" fill="white" rx="2"/>
+        <rect x="7" y="13" width="18" height="6" fill="white" rx="2"/>
+      </svg>
+      <h1>Dawin<span>i</span> Desktop</h1>
+    </div>
+    <p class="hero-tagline">Votre cabinet m&eacute;dical, intelligent et hors ligne</p>
+    <h2 class="hero-subtitle">Sc&eacute;narios Happy Path &mdash; Guide de D&eacute;couverte</h2>
+    <p class="hero-meta">Version 1.1 &middot; Avril 2026 &middot; Application de bureau</p>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- NAVIGATION                                        -->
+<!-- ══════════════════════════════════════════════════ -->
+<nav class="toc" id="toc">
+  <div class="toc-inner">
+    <a href="#phase-1">1. Installation</a>
+    <a href="#phase-2">2. Configuration</a>
+    <a href="#phase-3">3. Dr. Amira</a>
+    <a href="#phase-4">4. Patients &amp; RDV</a>
+    <a href="#phase-5">5. Consultations</a>
+    <a href="#phase-6">6. Facturation</a>
+    <a href="#phase-7">7. V&eacute;rification</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- INSTRUCTIONS D'UTILISATION                        -->
+<!-- ══════════════════════════════════════════════════ -->
+<section class="phase container" style="padding-bottom:16px;">
+  <div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--radius-card);padding:24px;">
+    <p style="font-family:var(--font-heading);font-weight:500;font-size:18px;color:var(--amber);margin-bottom:12px;">Comment utiliser ce guide</p>
+    <ul style="font-size:14px;color:var(--amber);line-height:1.8;padding-left:20px;">
+      <li>Cliquez sur chaque sc&eacute;nario pour le d&eacute;plier / replier</li>
+      <li>Suivez les &eacute;tapes dans l'ordre &mdash; chaque phase d&eacute;pend de la pr&eacute;c&eacute;dente</li>
+      <li>Les <strong>Phases 1-3</strong> sont &agrave; faire une seule fois (installation + configuration + IA)</li>
+      <li>Les <strong>Phases 4-7</strong> couvrent le flux m&eacute;dical quotidien et la v&eacute;rification finale</li>
+      <li>Chaque &eacute;tape inclut un <strong style="color:var(--green);">R&eacute;sultat attendu</strong> pour valider le bon fonctionnement</li>
+      <li>Les identifiants sont des placeholders <code style="background:var(--amber-border);color:var(--amber);padding:1px 6px;border-radius:4px;">[email]</code> &agrave; remplacer par vos vraies donn&eacute;es</li>
+      <li><strong>Aucun internet requis</strong> &mdash; tout fonctionne localement apr&egrave;s installation</li>
+    </ul>
+  </div>
+</section>
+
+<main class="container">
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 1 : INSTALLATION & PREMIER LANCEMENT                           -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="phase" id="phase-1">
+  <p class="phase-eyebrow">Phase 1</p>
+  <h2 class="phase-title">Installation &amp; Premier lancement</h2>
+  <p class="phase-desc">T&eacute;l&eacute;charger et installer Dawini Desktop, cr&eacute;er le cabinet via le formulaire de configuration initiale, se connecter et d&eacute;couvrir le dashboard. &Agrave; faire une seule fois.</p>
+
+  <!-- ── Scénario 1.1 ──────────────────────────────────── -->
+  <div class="scenario open" id="s1-1">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">1</span>
+      <span class="scenario-title">Installer Dawini Desktop</span>
+      <span class="scenario-role role-admin">Admin</span>
+      <span class="duration">~5 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">T&eacute;l&eacute;charger l'installateur</p>
+          <p class="step-detail">R&eacute;cup&eacute;rer le fichier d'installation <code>Dawini-Desktop-Setup-1.0.exe</code> depuis la source fournie (cl&eacute; USB, lien partag&eacute; ou support technique).</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le fichier d'installation est pr&eacute;sent sur votre machine.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Lancer l'installation</p>
+          <p class="step-detail">Double-cliquer sur le fichier <code>.exe</code>. Suivre les &eacute;tapes de l'installateur (accepter les termes, choisir le r&eacute;pertoire d'installation).</p>
+          <div class="note"><span class="note-icon">&#9888;</span> Windows Defender peut afficher un avertissement &laquo; Application non reconnue &raquo;. Cliquer sur <strong>Informations compl&eacute;mentaires</strong> &rarr; <strong>Ex&eacute;cuter quand m&ecirc;me</strong>.</div>
+          <div class="result"><span class="result-icon">&#10003;</span> L'installation se termine avec succ&egrave;s. Un raccourci <strong>Dawini Desktop</strong> appara&icirc;t sur le bureau.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">Premier lancement de l'application</p>
+          <p class="step-detail">Double-cliquer sur le raccourci <strong>Dawini Desktop</strong>. L'application d&eacute;marre et le serveur local embarqu&eacute; s'initialise automatiquement.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> L'application s'ouvre et le formulaire de configuration initiale s'affiche automatiquement.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> Au premier lancement, la base de donn&eacute;es locale est cr&eacute;&eacute;e automatiquement. Le mod&egrave;le IA se charge en arri&egrave;re-plan.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 1.2 ──────────────────────────────────── -->
+  <div class="scenario" id="s1-2">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">2</span>
+      <span class="scenario-title">Configuration initiale &mdash; Cr&eacute;er mon cabinet</span>
+      <span class="scenario-role role-admin">Admin</span>
+      <span class="duration">~3 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> L'application est lanc&eacute;e pour la premi&egrave;re fois (Sc&eacute;nario 1). Le formulaire de configuration initiale est affich&eacute;.
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Remplir le formulaire de cr&eacute;ation du cabinet</p>
+          <p class="step-detail">Le formulaire de configuration initiale affiche 4 champs. Remplir exactement :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Pr&eacute;nom</td><td>[pr&eacute;nom] &mdash; placeholder : &laquo; Ali &raquo;</td></tr>
+              <tr><td>Nom</td><td>[nom] &mdash; placeholder : &laquo; Benali &raquo;</td></tr>
+              <tr><td>Adresse e-mail</td><td>[email_admin] &mdash; placeholder : &laquo; docteur@cabinet.dz &raquo;</td></tr>
+              <tr><td>Mot de passe</td><td>[mot_de_passe] &mdash; placeholder : &laquo; Minimum 8 caract&egrave;res &raquo;</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> Le formulaire accepte toutes les donn&eacute;es sans erreur de validation.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> Il n'y a pas de champ &laquo; Confirmer le mot de passe &raquo;. Le mot de passe doit faire au minimum 8 caract&egrave;res.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Soumettre le formulaire</p>
+          <p class="step-detail">Cliquer sur le bouton <strong>Cr&eacute;er mon cabinet</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le message <strong>&laquo; Cabinet cr&eacute;&eacute; ! Redirection... &raquo;</strong> s'affiche. L'application redirige automatiquement vers le tableau de bord.</div>
+          <div class="note"><span class="note-icon">&#9888;</span> Aucun email de confirmation n'est envoy&eacute; &mdash; tout se passe en local. Retenez bien vos identifiants.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier la page de connexion (optionnel)</p>
+          <p class="step-detail">Le lien <strong>&laquo; D&eacute;j&agrave; configur&eacute; ? Se connecter &raquo;</strong> en bas du formulaire m&egrave;ne &agrave; la page de connexion. Cette page permet de se reconnecter ult&eacute;rieurement avec :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Adresse e-mail</td><td>[email_admin]</td></tr>
+              <tr><td>Mot de passe</td><td>[mot_de_passe] &mdash; avec bouton de visibilit&eacute; (ic&ocirc;ne oeil)</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> La page de connexion est accessible. Le bouton de visibilit&eacute; du mot de passe fonctionne (ic&ocirc;ne &oelig;il).</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 1.3 ──────────────────────────────────── -->
+  <div class="scenario" id="s1-3">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">3</span>
+      <span class="scenario-title">D&eacute;couverte du dashboard</span>
+      <span class="scenario-role role-admin">Admin</span>
+      <span class="duration">~2 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Le cabinet a &eacute;t&eacute; cr&eacute;&eacute; et vous &ecirc;tes redirig&eacute; sur le dashboard (Sc&eacute;nario 2).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Observer les 4 cartes statistiques</p>
+          <p class="step-detail">Le dashboard affiche 4 cartes de statistiques en haut de page :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Rendez-vous aujourd'hui</td><td>Nombre de rendez-vous planifi&eacute;s pour la journ&eacute;e (0 pour l'instant)</td></tr>
+              <tr><td>Patients en attente</td><td>Nombre de patients dans la file d'attente (0 pour l'instant)</td></tr>
+              <tr><td>Total patients</td><td>Nombre total de patients enregistr&eacute;s (0 pour l'instant)</td></tr>
+              <tr><td>Factures impay&eacute;es</td><td>Nombre de factures non r&eacute;gl&eacute;es (0 pour l'instant)</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> Les 4 cartes s'affichent correctement avec des valeurs &agrave; z&eacute;ro.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Observer la liste des rendez-vous du jour</p>
+          <p class="step-detail">Sous les cartes, le dashboard affiche la liste des rendez-vous d'aujourd'hui (jusqu'&agrave; 20). Chaque ligne montre : <strong>nom du patient</strong>, <strong>heure</strong>, <strong>statut</strong>, <strong>motif</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La liste est vide pour l'instant. Elle se remplira automatiquement une fois les rendez-vous cr&eacute;&eacute;s.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> Le dashboard se rafra&icirc;chit automatiquement toutes les <strong>10 secondes</strong>. La sidebar de navigation donne acc&egrave;s &agrave; tous les modules : Patients, Rendez-vous, File d'attente, Consultations, Ordonnances, Certificats, Facturation, Employ&eacute;s, Param&egrave;tres.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 2 : CONFIGURATION DU CABINET                                    -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="phase" id="phase-2">
+  <p class="phase-eyebrow">Phase 2</p>
+  <h2 class="phase-title">Configuration du cabinet</h2>
+  <p class="phase-desc">Personnaliser les informations du cabinet via les 4 onglets des param&egrave;tres, configurer les horaires des employ&eacute;s et inviter un membre de l'&eacute;quipe par email.</p>
+
+  <!-- ── Scénario 2.1 ──────────────────────────────────── -->
+  <div class="scenario" id="s2-1">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">4</span>
+      <span class="scenario-title">Param&egrave;tres du cabinet (onglet Cabinet)</span>
+      <span class="scenario-role role-admin">Admin</span>
+      <span class="duration">~3 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> &Ecirc;tre connect&eacute; en tant qu'Admin (Sc&eacute;nario 2).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Acc&eacute;der aux param&egrave;tres</p>
+          <p class="step-detail">Dans la sidebar, cliquer sur <strong>Param&egrave;tres</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La page des param&egrave;tres s'affiche avec <strong>4 onglets</strong> : <strong>Cabinet</strong>, <strong>Amira</strong>, <strong>License</strong>, <strong>Application</strong>. L'onglet <strong>Cabinet</strong> est s&eacute;lectionn&eacute; par d&eacute;faut.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Remplir les informations du cabinet</p>
+          <p class="step-detail">Dans l'onglet <strong>Cabinet</strong>, remplir tous les champs :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Nom du cabinet</td><td>[nom_cabinet]</td></tr>
+              <tr><td>Pr&eacute;nom du m&eacute;decin</td><td>[pr&eacute;nom_m&eacute;decin]</td></tr>
+              <tr><td>Nom du m&eacute;decin</td><td>[nom_m&eacute;decin]</td></tr>
+              <tr><td>Sp&eacute;cialit&eacute;</td><td>[sp&eacute;cialit&eacute;]</td></tr>
+              <tr><td>N&deg; d'ordre</td><td>[num&eacute;ro_ordre]</td></tr>
+              <tr><td>Adresse</td><td>[adresse]</td></tr>
+              <tr><td>T&eacute;l&eacute;phone</td><td>[t&eacute;l&eacute;phone]</td></tr>
+              <tr><td>Wilaya</td><td>[wilaya]</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> Les informations du cabinet sont remplies. Elles appara&icirc;tront dans les en-t&ecirc;tes des documents imprim&eacute;s (ordonnances, certificats, factures).</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">Configurer la dur&eacute;e de consultation et les types</p>
+          <p class="step-detail">Toujours dans l'onglet <strong>Cabinet</strong>, configurer :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Dur&eacute;e de consultation par d&eacute;faut</td><td>S&eacute;lectionner dans le dropdown : <strong>15</strong> / <strong>30</strong> / <strong>45</strong> / <strong>60</strong> min</td></tr>
+              <tr><td>Types de consultation</td><td>Liste dynamique &mdash; chaque type a un <strong>libell&eacute;</strong> et un <strong>tarif</strong></td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Cliquer sur <strong>Ajouter un type de consultation</strong> pour ajouter des types (ex : &laquo; Consultation g&eacute;n&eacute;rale &raquo; &mdash; 2000 DA, &laquo; Contr&ocirc;le &raquo; &mdash; 1000 DA). Puis cliquer sur <strong>Enregistrer</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La dur&eacute;e par d&eacute;faut et les types de consultation sont sauvegard&eacute;s. Les types seront propos&eacute;s lors de la cr&eacute;ation de consultations et factures.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">4</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier l'onglet Amira (statut du mod&egrave;le IA)</p>
+          <p class="step-detail">Cliquer sur l'onglet <strong>Amira</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> L'onglet affiche le statut du mod&egrave;le IA : <strong>&laquo; Mod&egrave;le charg&eacute; &raquo;</strong> (badge vert) si le mod&egrave;le est pr&ecirc;t, ou <strong>&laquo; Aucun mod&egrave;le charg&eacute; &raquo;</strong> (badge gris) s'il est en cours de chargement.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">5</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier l'onglet License</p>
+          <p class="step-detail">Cliquer sur l'onglet <strong>License</strong>.</p>
+          <div class="step-data">
+            <table>
+              <tr><td>&Eacute;tat de la licence</td><td><strong>ACTIVE</strong>, <strong>EXPIRED</strong> ou <strong>TRIAL</strong></td></tr>
+              <tr><td>Jours restants</td><td>Nombre de jours avant expiration</td></tr>
+              <tr><td>Formulaire d'activation</td><td>Champs : <strong>Cl&eacute; de licence</strong> + <strong>Code de parrainage</strong> (optionnel)</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> L'&eacute;tat de la licence et les jours restants sont affich&eacute;s. Le formulaire d'activation est disponible pour saisir une cl&eacute;.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">6</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier l'onglet Application</p>
+          <p class="step-detail">Cliquer sur l'onglet <strong>Application</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le num&eacute;ro de version de l'application est affich&eacute;, ainsi qu'un bouton <strong>&laquo; V&eacute;rifier les mises &agrave; jour &raquo;</strong>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 2.2 ──────────────────────────────────── -->
+  <div class="scenario" id="s2-2">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">5</span>
+      <span class="scenario-title">Configurer les horaires (Shifts)</span>
+      <span class="scenario-role role-admin">Admin</span>
+      <span class="duration">~2 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> &Ecirc;tre connect&eacute; en tant qu'Admin (Sc&eacute;nario 2).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Ouvrir la modale des horaires</p>
+          <p class="step-detail">Depuis la page <strong>Employ&eacute;s</strong>, cliquer sur l'ic&ocirc;ne <strong>calendrier</strong> &agrave; c&ocirc;t&eacute; d'un employ&eacute; (docteur ou secr&eacute;taire) pour ouvrir la modale des shifts.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Une modale s'ouvre avec une <strong>grille de 7 jours</strong> (Dim &agrave; Sam). Chaque jour a : une <strong>case &agrave; cocher</strong> (activ&eacute;/d&eacute;sactiv&eacute;), un champ <strong>heure de d&eacute;but</strong> et un champ <strong>heure de fin</strong>.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">D&eacute;finir les cr&eacute;neaux de travail</p>
+          <p class="step-detail">Cocher les jours travaill&eacute;s et remplir les horaires. Les jours d&eacute;coch&eacute;s affichent <strong>&laquo; Repos &raquo;</strong> :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Dimanche</td><td>08:00 &ndash; 16:00</td></tr>
+              <tr><td>Lundi</td><td>08:00 &ndash; 16:00</td></tr>
+              <tr><td>Mardi</td><td>08:00 &ndash; 16:00</td></tr>
+              <tr><td>Mercredi</td><td>08:00 &ndash; 12:00</td></tr>
+              <tr><td>Jeudi</td><td>08:00 &ndash; 16:00</td></tr>
+              <tr><td>Vendredi</td><td>D&eacute;coch&eacute; &rarr; <strong>Repos</strong></td></tr>
+              <tr><td>Samedi</td><td>D&eacute;coch&eacute; &rarr; <strong>Repos</strong></td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Cliquer sur <strong>Enregistrer les horaires</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Les horaires sont sauvegard&eacute;s. Le syst&egrave;me de rendez-vous utilisera ces cr&eacute;neaux pour les suggestions de cr&eacute;neaux et la d&eacute;tection de conflits.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 2.3 ──────────────────────────────────── -->
+  <div class="scenario" id="s2-3">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">6</span>
+      <span class="scenario-title">Inviter un membre de l'&eacute;quipe par email</span>
+      <span class="scenario-role role-admin">Admin</span>
+      <span class="duration">~2 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> &Ecirc;tre connect&eacute; en tant qu'Admin (Sc&eacute;nario 2).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Acc&eacute;der &agrave; la gestion des employ&eacute;s</p>
+          <p class="step-detail">Dans la sidebar, cliquer sur <strong>Employ&eacute;s</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La page Employ&eacute;s s'affiche avec la liste du personnel (seul l'Admin est pr&eacute;sent pour l'instant).</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Inviter un employ&eacute; par email</p>
+          <p class="step-detail">Cliquer sur <strong>Inviter un employ&eacute;</strong> et remplir le formulaire d'invitation :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Email</td><td>[email_secretaire]</td></tr>
+              <tr><td>R&ocirc;le</td><td>Dropdown : <strong>DOCTEUR</strong> / <strong>SECRETAIRE</strong> / <strong>EMPLOYE</strong> &mdash; s&eacute;lectionner <strong>SECRETAIRE</strong> (d&eacute;faut)</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Cliquer sur <strong>Envoyer l'invitation</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le message <strong>&laquo; Invitation envoy&eacute;e &agrave; [email_secretaire] &mdash; Le lien expire dans 48 heures. &raquo;</strong> s'affiche.</div>
+          <div class="note"><span class="note-icon">&#9888;</span> L'invitation est envoy&eacute;e par email. L'employ&eacute; recevra un lien pour cr&eacute;er son compte. Le lien expire apr&egrave;s <strong>48 heures</strong>. Ce n'est pas une cr&eacute;ation de compte locale &mdash; c'est un syst&egrave;me d'invitation.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 3 : DR. AMIRA — ASSISTANT IA MÉDICAL                           -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="phase" id="phase-3">
+  <p class="phase-eyebrow">Phase 3</p>
+  <h2 class="phase-title">Dr. Amira &mdash; Assistant IA m&eacute;dical</h2>
+  <p class="phase-desc">Indexer des documents m&eacute;dicaux dans la biblioth&egrave;que locale, tester le chat IA avec ses boutons d'action rapide, et observer le mode Whisper (indices inline lors de la saisie des signes vitaux).</p>
+
+  <!-- ── Scénario 3.1 ──────────────────────────────────── -->
+  <div class="scenario" id="s3-1">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">7</span>
+      <span class="scenario-title">Indexer des documents m&eacute;dicaux</span>
+      <span class="scenario-role role-docteur">Docteur</span>
+      <span class="duration">~3 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> &Ecirc;tre connect&eacute; en tant qu'Admin ou Docteur. Avoir un fichier m&eacute;dical de r&eacute;f&eacute;rence (guide clinique, protocole, etc.).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Ajouter un document &agrave; la biblioth&egrave;que de Dr. Amira</p>
+          <p class="step-detail">Acc&eacute;der &agrave; la section <strong>Dr. Amira</strong> &rarr; <strong>Biblioth&egrave;que</strong>. Cliquer sur <strong>Ajouter un document</strong>, s&eacute;lectionner le fichier m&eacute;dical depuis votre ordinateur (PDF, guide clinique, protocole, etc.) et choisir sa cat&eacute;gorie (ex : &laquo; Guide clinique &raquo;, &laquo; Protocole &raquo;). Cliquer sur <strong>Indexer</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Dr. Amira analyse et enregistre automatiquement le contenu du document dans sa m&eacute;moire locale. Elle pourra d&eacute;sormais r&eacute;f&eacute;rencer ce document dans ses r&eacute;ponses.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier la biblioth&egrave;que</p>
+          <p class="step-detail">La biblioth&egrave;que affiche la liste des documents int&eacute;gr&eacute;s avec le nombre de passages analys&eacute;s par Dr. Amira pour chaque document.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le document appara&icirc;t dans la biblioth&egrave;que, confirmant que l'int&eacute;gration a r&eacute;ussi.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> Vous pouvez supprimer un document de la biblioth&egrave;que en cliquant sur l'ic&ocirc;ne de suppression &agrave; c&ocirc;t&eacute; du document concern&eacute;.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 3.2 ──────────────────────────────────── -->
+  <div class="scenario" id="s3-2">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">8</span>
+      <span class="scenario-title">Tester le panneau Chat de Dr. Amira</span>
+      <span class="scenario-role role-docteur">Docteur</span>
+      <span class="duration">~3 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Un document a &eacute;t&eacute; index&eacute; (Sc&eacute;nario 7). Le mod&egrave;le IA est charg&eacute; (v&eacute;rifier dans Param&egrave;tres &rarr; onglet Amira : &laquo; Mod&egrave;le charg&eacute; &raquo; en vert).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Ouvrir le panneau Chat</p>
+          <p class="step-detail">Cliquer sur l'ic&ocirc;ne <strong>Dr. Amira</strong> (bouton flottant). Le panneau de chat glisse depuis la droite.</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Barre de contexte</td><td>En haut du panneau, indique l'&eacute;cran actuel pour contextualiser les r&eacute;ponses</td></tr>
+              <tr><td>Boutons d'action rapide</td><td><strong>Diagnostic</strong> &middot; <strong>Ordonnance</strong> &middot; <strong>Certificat</strong> &middot; <strong>R&eacute;sum&eacute;</strong></td></tr>
+              <tr><td>Champ de saisie</td><td>En bas du panneau, avec un bouton <strong>Envoyer</strong></td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> Le panneau s'ouvre en glissant depuis la droite. La barre de contexte, les boutons d'action rapide et le champ de saisie sont visibles.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Poser une question m&eacute;dicale</p>
+          <p class="step-detail">Taper une question dans le champ de saisie, par exemple :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Question test</td><td>&laquo; Quel est le traitement de premi&egrave;re intention pour une hypertension art&eacute;rielle de grade 1 ? &raquo;</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Cliquer sur le bouton <strong>Envoyer</strong> (ou appuyer sur Entr&eacute;e).</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La r&eacute;ponse s'affiche dans le panneau. Les messages du docteur apparaissent en <strong>bleu &agrave; droite</strong>, ceux d'Amira en <strong>blanc &agrave; gauche avec des badges de source</strong> indiquant les documents r&eacute;f&eacute;renc&eacute;s.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">Tester les boutons d'action rapide</p>
+          <p class="step-detail">Cliquer sur l'un des boutons d'action rapide (&laquo; <strong>Diagnostic</strong> &raquo;, &laquo; <strong>Ordonnance</strong> &raquo;, &laquo; <strong>Certificat</strong> &raquo; ou &laquo; <strong>R&eacute;sum&eacute;</strong> &raquo;) pour d&eacute;clencher une requ&ecirc;te contextuelle &agrave; Dr. Amira.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Dr. Amira r&eacute;pond avec un contenu adapt&eacute; au type d'action demand&eacute; et au contexte de l'&eacute;cran en cours.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 3.3 ──────────────────────────────────── -->
+  <div class="scenario" id="s3-3">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">9</span>
+      <span class="scenario-title">Observer le mode Whisper et le contr&ocirc;le des vitaux</span>
+      <span class="scenario-role role-docteur">Docteur</span>
+      <span class="duration">~2 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Ce sc&eacute;nario sera pleinement test&eacute; lors de la Phase 5 (consultation). Pour l'instant, il suffit de comprendre le concept.
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Comprendre le contr&ocirc;le des vitaux</p>
+          <p class="step-detail">Lors de la saisie des signes vitaux dans une consultation, Dr. Amira effectue automatiquement un contr&ocirc;le des valeurs saisies. Si une valeur sort des normes, une alerte s'affiche directement &agrave; c&ocirc;t&eacute; du champ concern&eacute; :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Tension art&eacute;rielle</td><td>Ex : &laquo; 18/11 &raquo; &rarr; alerte &laquo; HTA Grade 2 &raquo;</td></tr>
+              <tr><td>Poids</td><td>Ex : 85 kg &rarr; aucune alerte si dans les normes</td></tr>
+              <tr><td>Temp&eacute;rature</td><td>Ex : 39.5&deg;C &rarr; alerte &laquo; Fi&egrave;vre &eacute;lev&eacute;e &raquo;</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> Le concept est compris. Le contr&ocirc;le des vitaux sera v&eacute;rifi&eacute; en direct lors du Sc&eacute;nario 15 (consultation).</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Comprendre le mode Whisper</p>
+          <p class="step-detail">Le mode <strong>Whisper</strong> est automatique : lorsque le docteur saisit les signes vitaux dans le formulaire de consultation, des <strong>indices inline</strong> apparaissent directement &agrave; c&ocirc;t&eacute; des champs.</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Exemple &mdash; Tension 18/11</td><td>Un indice inline &laquo; HTA Grade 2 &raquo; appara&icirc;t &agrave; c&ocirc;t&eacute; du champ</td></tr>
+              <tr><td>Exemple &mdash; Temp&eacute;rature 39.5&deg;C</td><td>Un indice inline &laquo; Fi&egrave;vre &eacute;lev&eacute;e &raquo; appara&icirc;t avec une suggestion</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> Le mode Whisper sera visible concr&egrave;tement dans le formulaire de consultation (Sc&eacute;nario 15).</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 4 : PATIENTS & RENDEZ-VOUS                                      -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="phase" id="phase-4">
+  <p class="phase-eyebrow">Phase 4</p>
+  <h2 class="phase-title">Patients &amp; Rendez-vous</h2>
+  <p class="phase-desc">Cr&eacute;er des dossiers patients, planifier des rendez-vous avec suggestions de cr&eacute;neaux et g&eacute;rer la file d'attente &agrave; double couloir.</p>
+
+  <!-- ── Scénario 4.1 ──────────────────────────────────── -->
+  <div class="scenario" id="s4-1">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">10</span>
+      <span class="scenario-title">Cr&eacute;er un premier patient</span>
+      <span class="scenario-role role-secretaire">Secr&eacute;taire</span>
+      <span class="duration">~3 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> &Ecirc;tre connect&eacute; en tant qu'Admin, Docteur ou Secr&eacute;taire.
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Acc&eacute;der &agrave; la liste des patients</p>
+          <p class="step-detail">Dans la sidebar, cliquer sur <strong>Patients</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La page Patients s'affiche avec une liste vide, une barre de recherche (par nom/pr&eacute;nom), et un bouton <strong>+ Nouveau patient</strong>. La liste est pagin&eacute;e (20 patients par page).</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Cr&eacute;er le premier dossier patient</p>
+          <p class="step-detail">Cliquer sur <strong>+ Nouveau patient</strong>. Remplir les champs <strong>obligatoires</strong> :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Pr&eacute;nom</td><td>Amina</td></tr>
+              <tr><td>Nom</td><td>Benali</td></tr>
+              <tr><td>T&eacute;l&eacute;phone</td><td>0551 23 45 67</td></tr>
+              <tr><td>Date de naissance</td><td>15/03/1985</td></tr>
+              <tr><td>Sexe</td><td><strong>F</strong> (boutons toggle M/F)</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">D&eacute;plier la section <strong>Champs optionnels</strong> (extensible) pour ajouter :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Email</td><td>[email_patient] (optionnel)</td></tr>
+              <tr><td>NSS</td><td>[num&eacute;ro_s&eacute;curit&eacute;_sociale] (optionnel)</td></tr>
+              <tr><td>Wilaya</td><td>Alger (optionnel)</td></tr>
+              <tr><td>Commune</td><td>Bab El Oued (optionnel)</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Cliquer sur <strong>Enregistrer</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le dossier patient est cr&eacute;&eacute;. Amina Benali appara&icirc;t dans la liste des patients.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> Le tableau des patients affiche les colonnes : <strong>Nom</strong> | <strong>Pr&eacute;nom</strong> | <strong>&Acirc;ge</strong> | <strong>Sexe</strong> | <strong>T&eacute;l&eacute;phone</strong> | <strong>Actions</strong>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 4.2 ──────────────────────────────────── -->
+  <div class="scenario" id="s4-2">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">11</span>
+      <span class="scenario-title">Cr&eacute;er un deuxi&egrave;me patient</span>
+      <span class="scenario-role role-secretaire">Secr&eacute;taire</span>
+      <span class="duration">~2 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> &Ecirc;tre connect&eacute; (Sc&eacute;nario 2). Le premier patient existe (Sc&eacute;nario 10).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Cr&eacute;er un deuxi&egrave;me dossier patient</p>
+          <p class="step-detail">Depuis la page <strong>Patients</strong>, cliquer sur <strong>+ Nouveau patient</strong> et remplir les champs obligatoires :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Pr&eacute;nom</td><td>Youcef</td></tr>
+              <tr><td>Nom</td><td>Meziane</td></tr>
+              <tr><td>T&eacute;l&eacute;phone</td><td>0661 98 76 54</td></tr>
+              <tr><td>Date de naissance</td><td>22/07/1972</td></tr>
+              <tr><td>Sexe</td><td><strong>M</strong> (boutons toggle M/F)</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Optionnellement, d&eacute;plier et remplir : NSS, Wilaya (Alger), Commune (Hussein Dey). Cliquer sur <strong>Enregistrer</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Youcef Meziane appara&icirc;t dans la liste. Deux patients sont d&eacute;sormais enregistr&eacute;s dans le syst&egrave;me.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 4.3 ──────────────────────────────────── -->
+  <div class="scenario" id="s4-3">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">12</span>
+      <span class="scenario-title">Planifier un rendez-vous</span>
+      <span class="scenario-role role-secretaire">Secr&eacute;taire</span>
+      <span class="duration">~3 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Au moins un patient existe (Sc&eacute;nario 10) et les horaires du docteur sont configur&eacute;s (Sc&eacute;nario 5).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Acc&eacute;der au calendrier des rendez-vous</p>
+          <p class="step-detail">Dans la sidebar, cliquer sur <strong>Rendez-vous</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le calendrier hebdomadaire s'affiche (Lundi &agrave; Samedi, 8h &agrave; 18h). Des boutons de navigation permettent de passer d'une semaine &agrave; l'autre.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> Des boutons de filtre par statut sont affich&eacute;s au-dessus du calendrier avec des compteurs : <strong>Planifi&eacute;</strong> | <strong>Confirm&eacute;</strong> | <strong>En attente</strong> | <strong>Termin&eacute;</strong> | <strong>Absent</strong> | <strong>Annul&eacute;</strong>.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Cr&eacute;er un nouveau rendez-vous</p>
+          <p class="step-detail">Cliquer sur <strong>+ Nouveau rendez-vous</strong> et remplir le formulaire :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Patient</td><td>Amina Benali (recherche autocomplete par nom)</td></tr>
+              <tr><td>Date</td><td>Aujourd'hui (ou la prochaine date ouvrable)</td></tr>
+              <tr><td>Docteur</td><td>S&eacute;lectionner dans le dropdown des docteurs</td></tr>
+              <tr><td>Heure</td><td>Choisir parmi les <strong>suggestions de cr&eacute;neaux</strong> (voir &eacute;tape 3)</td></tr>
+              <tr><td>Motif</td><td><strong>Consultation</strong> (obligatoire) &mdash; chips rapides : &laquo; Consultation &raquo; | &laquo; Suivi &raquo; | &laquo; Urgence &raquo; | &laquo; Renouvellement &raquo; | &laquo; R&eacute;sultats &raquo;</td></tr>
+              <tr><td>Dur&eacute;e</td><td>30 min (d&eacute;faut)</td></tr>
+              <tr><td>Notes</td><td>Premi&egrave;re consultation &mdash; douleurs abdominales (optionnel)</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> Le formulaire est rempli. Les chips de motif rapide sont cliquables pour remplir le champ automatiquement.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">Observer les suggestions de cr&eacute;neaux</p>
+          <p class="step-detail">D&egrave;s que le <strong>docteur</strong>, la <strong>date</strong> et la <strong>dur&eacute;e</strong> sont s&eacute;lectionn&eacute;s, le syst&egrave;me propose automatiquement des <strong>suggestions de cr&eacute;neaux</strong> disponibles. Chaque suggestion affiche l'heure et un <strong>score de confiance</strong>.</p>
+          <p class="step-detail">S&eacute;lectionner le cr&eacute;neau <strong>09:00</strong>. Cliquer sur <strong>Confirmer le rendez-vous</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le rendez-vous appara&icirc;t dans le calendrier avec le statut <strong>Planifi&eacute;</strong>.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">4</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier la d&eacute;tection de conflits (optionnel)</p>
+          <p class="step-detail">Essayer de cr&eacute;er un 2e rendez-vous au m&ecirc;me cr&eacute;neau (09:00) avec le m&ecirc;me docteur.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le syst&egrave;me d&eacute;tecte le <strong>conflit</strong> et le cr&eacute;neau n'appara&icirc;t plus dans les suggestions.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 4.4 ──────────────────────────────────── -->
+  <div class="scenario" id="s4-4">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">13</span>
+      <span class="scenario-title">G&eacute;rer la file d'attente (double couloir)</span>
+      <span class="scenario-role role-secretaire">Secr&eacute;taire</span>
+      <span class="duration">~5 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Un rendez-vous planifi&eacute; pour aujourd'hui (Sc&eacute;nario 12).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Acc&eacute;der &agrave; la file d'attente</p>
+          <p class="step-detail">Dans la sidebar, cliquer sur <strong>File d'attente</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La page File d'attente s'affiche avec <strong>deux couloirs</strong> : le <strong>Couloir Rendez-vous</strong> (Appointment Lane) et le <strong>Couloir Sans rendez-vous</strong> (Walk-in Lane).</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Enregistrer un patient avec rendez-vous (Check-in)</p>
+          <p class="step-detail">Dans le panneau <strong>&laquo; Check-in en attente &raquo;</strong>, les rendez-vous d'aujourd'hui non encore enregistr&eacute;s sont list&eacute;s. Cliquer sur le bouton de check-in &agrave; c&ocirc;t&eacute; du rendez-vous d'Amina Benali.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le patient passe dans le <strong>Couloir Rendez-vous</strong> avec le statut <strong>En attente</strong>. Son num&eacute;ro dans la file est attribu&eacute; automatiquement.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">Ajouter un patient sans rendez-vous (Walk-in)</p>
+          <p class="step-detail">Utiliser le formulaire <strong>&laquo; Ajouter un sans rendez-vous &raquo;</strong> pour enregistrer un patient qui se pr&eacute;sente spontan&eacute;ment. S&eacute;lectionner ou cr&eacute;er le patient.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le patient appara&icirc;t dans le <strong>Couloir Sans rendez-vous</strong> avec son num&eacute;ro de file.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">4</span>
+        <div class="step-content">
+          <p class="step-action">Appeler le patient suivant</p>
+          <p class="step-detail">Cliquer sur le bouton <strong>Appeler suivant</strong>. Le syst&egrave;me appelle automatiquement le prochain patient selon les r&egrave;gles de priorit&eacute; (rendez-vous avant walk-in). Vous pouvez aussi appeler manuellement un patient sp&eacute;cifique via son token.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le statut du patient appel&eacute; change. Le patient est pr&ecirc;t &agrave; entrer en consultation.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">5</span>
+        <div class="step-content">
+          <p class="step-action">Terminer ou marquer absent</p>
+          <p class="step-detail">Quand la consultation est termin&eacute;e, cliquer sur <strong>Termin&eacute;</strong>. Si le patient ne se pr&eacute;sente pas, cliquer sur <strong>Absent</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le patient dispara&icirc;t de la file active.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">6</span>
+        <div class="step-content">
+          <p class="step-action">Partager la salle d'attente publique (optionnel)</p>
+          <p class="step-detail">La file d'attente dispose d'un bouton <strong>QR Code</strong> et d'un bouton <strong>Copier le lien</strong>. Ce lien peut &ecirc;tre partag&eacute; avec les patients pour qu'ils suivent leur position dans la file depuis leur t&eacute;l&eacute;phone.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le QR code s'affiche. Le lien peut &ecirc;tre copi&eacute; et partag&eacute;. La page publique de la salle d'attente s'affiche en temps r&eacute;el, sans n&eacute;cessiter de connexion au compte.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 5 : CONSULTATIONS & DOCUMENTS MÉDICAUX                          -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="phase" id="phase-5">
+  <p class="phase-eyebrow">Phase 5</p>
+  <h2 class="phase-title">Consultations &amp; Documents m&eacute;dicaux</h2>
+  <p class="phase-desc">Mener une consultation compl&egrave;te avec saisie des signes vitaux et mode Whisper, puis r&eacute;diger ordonnances et certificats apr&egrave;s finalisation.</p>
+
+  <!-- ── Scénario 5.1 ──────────────────────────────────── -->
+  <div class="scenario" id="s5-1">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">14</span>
+      <span class="scenario-title">Consulter le calendrier hebdomadaire</span>
+      <span class="scenario-role role-docteur">Docteur</span>
+      <span class="duration">~1 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> &Ecirc;tre connect&eacute; en tant que Docteur ou Admin. Un rendez-vous existe pour aujourd'hui (Sc&eacute;nario 12).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Ouvrir les rendez-vous</p>
+          <p class="step-detail">Dans la sidebar, cliquer sur <strong>Rendez-vous</strong>. Le calendrier hebdomadaire s'affiche (Lundi &agrave; Samedi, 8h &agrave; 18h) avec navigation par semaine.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le rendez-vous d'Amina Benali (09:00 - 30 min, motif &laquo; Consultation &raquo;) est visible dans le calendrier sur le jour d'aujourd'hui.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 5.2 ──────────────────────────────────── -->
+  <div class="scenario" id="s5-2">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">15</span>
+      <span class="scenario-title">Cr&eacute;er et mener une consultation (avec Dr. Amira Whisper)</span>
+      <span class="scenario-role role-docteur">Docteur</span>
+      <span class="duration">~5 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Le patient a &eacute;t&eacute; appel&eacute; depuis la file d'attente (Sc&eacute;nario 13, &eacute;tape 4).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Cr&eacute;er une nouvelle consultation</p>
+          <p class="step-detail">Aller dans <strong>Consultations</strong> &rarr; Cliquer sur <strong>+ Nouvelle consultation</strong>. Le formulaire s'affiche en <strong>deux colonnes</strong>.</p>
+          <p class="step-detail"><strong>Colonne gauche</strong> &mdash; remplir :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Patient</td><td>Amina Benali (dropdown de s&eacute;lection)</td></tr>
+              <tr><td>M&eacute;decin</td><td>Dropdown &mdash; pr&eacute;-rempli automatiquement si connect&eacute; en tant que DOCTEUR</td></tr>
+              <tr><td>Date et heure</td><td>S&eacute;lectionner la date et l'heure &mdash; par d&eacute;faut : maintenant</td></tr>
+              <tr><td>Motif</td><td>Douleurs abdominales (textarea, max 500 caract&egrave;res)</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> La consultation est cr&eacute;&eacute;e avec le statut <strong>En attente</strong>.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">D&eacute;marrer la consultation et remplir les signes vitaux</p>
+          <p class="step-detail">D&eacute;marrer la consultation (statut passe &agrave; <strong>En cours</strong>). Remplir les signes vitaux dans la <strong>colonne droite</strong> :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Tension art&eacute;rielle</td><td>12/8 (format XX/XX)</td></tr>
+              <tr><td>Poids kg</td><td>65 (plage accept&eacute;e : 1-500)</td></tr>
+              <tr><td>Temp&eacute;rature &deg;C</td><td>37.2 (plage accept&eacute;e : 30-45)</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> Les signes vitaux sont enregistr&eacute;s. <strong>Dr. Amira (mode Whisper)</strong> affiche des indices inline : la tension est normale, la temp&eacute;rature est dans les normes.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> C'est ici que le mode Whisper d&eacute;crit au Sc&eacute;nario 9 se manifeste concr&egrave;tement. Observez les alertes inline &agrave; c&ocirc;t&eacute; des champs. Pour tester une alerte, entrez une tension de <strong>18/11</strong> &mdash; Dr. Amira affichera &laquo; HTA Grade 2 &raquo;.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">Remplir les donn&eacute;es cliniques</p>
+          <p class="step-detail">Remplir les champs cliniques (tous des textareas) :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Examen clinique</td><td>Abdomen souple, douleur &eacute;pigastrique &agrave; la palpation. Pas de d&eacute;fense. Transit normal.</td></tr>
+              <tr><td>Diagnostic</td><td>Gastrite aigu&euml;</td></tr>
+              <tr><td>Traitement</td><td>Traitement m&eacute;dical + r&eacute;gime alimentaire. Contr&ocirc;le dans 2 semaines.</td></tr>
+              <tr><td>Notes</td><td>Patiente anxieuse, r&eacute;assurer sur le pronostic.</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Sauvegarder les modifications.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le dossier de consultation est mis &agrave; jour avec toutes les donn&eacute;es cliniques.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">4</span>
+        <div class="step-content">
+          <p class="step-action">Finaliser la consultation</p>
+          <p class="step-detail">Cliquer sur le bouton <strong>Finaliser</strong> dans la page de d&eacute;tail de la consultation.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le statut passe &agrave; <strong>Finalis&eacute;e</strong>. La consultation devient <strong>immuable</strong> &mdash; les champs ne sont plus modifiables.</div>
+          <div class="note"><span class="note-icon">&#9888;</span> Le cycle de vie est : <strong>En attente</strong> &rarr; <strong>En cours</strong> (d&eacute;marrer) &rarr; <strong>Finalis&eacute;e</strong> (finaliser). Une fois finalis&eacute;e, aucune modification n'est possible. Les ordonnances et certificats ne peuvent &ecirc;tre cr&eacute;&eacute;s qu'&agrave; partir d'une consultation <strong>finalis&eacute;e</strong>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 5.3 ──────────────────────────────────── -->
+  <div class="scenario" id="s5-3">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">16</span>
+      <span class="scenario-title">R&eacute;diger une ordonnance</span>
+      <span class="scenario-role role-docteur">Docteur</span>
+      <span class="duration">~3 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> La consultation d'Amina Benali est <strong>finalis&eacute;e</strong> (Sc&eacute;nario 15, &eacute;tape 4).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Cr&eacute;er une ordonnance</p>
+          <p class="step-detail">Aller dans <strong>Ordonnances</strong> &rarr; Cliquer sur <strong>+ Nouvelle ordonnance</strong>. S&eacute;lectionner la consultation finalis&eacute;e d'Amina Benali.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le formulaire d'ordonnance s'ouvre. Seules les consultations <strong>finalis&eacute;es</strong> apparaissent dans la liste d&eacute;roulante.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Ajouter les lignes de m&eacute;dicaments</p>
+          <p class="step-detail">Chaque ligne de m&eacute;dicament contient 5 champs : <strong>M&eacute;dicament</strong>, <strong>Dosage</strong>, <strong>Fr&eacute;quence</strong>, <strong>Dur&eacute;e</strong>, <strong>Instructions</strong> (optionnel). Cliquer sur <strong>Ajouter</strong> pour ajouter une ligne suppl&eacute;mentaire :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Ligne 1</td><td>Om&eacute;prazole &mdash; 20mg &mdash; 1 fois/jour le matin &mdash; 30 jours &mdash; Avant le repas</td></tr>
+              <tr><td>Ligne 2</td><td>Gaviscon &mdash; Suspension &mdash; 3 fois/jour apr&egrave;s repas &mdash; 14 jours</td></tr>
+              <tr><td>Ligne 3</td><td>Spasfon &mdash; 80mg &mdash; 3 fois/jour si douleur &mdash; 10 jours</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Cliquer sur <strong>Enregistrer l'ordonnance</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> L'ordonnance est cr&eacute;&eacute;e avec les 3 lignes de m&eacute;dicaments.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> L'ic&ocirc;ne poubelle permet de supprimer une ligne, mais elle est <strong>d&eacute;sactiv&eacute;e</strong> s'il ne reste qu'une seule ligne (minimum 1 m&eacute;dicament obligatoire). L'impression est disponible via le bouton <strong>Imprimer</strong>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 5.4 ──────────────────────────────────── -->
+  <div class="scenario" id="s5-4">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">17</span>
+      <span class="scenario-title">&Eacute;mettre un certificat m&eacute;dical</span>
+      <span class="scenario-role role-docteur">Docteur</span>
+      <span class="duration">~2 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> La consultation d'Amina Benali est <strong>finalis&eacute;e</strong> (Sc&eacute;nario 15, &eacute;tape 4).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Cr&eacute;er un certificat</p>
+          <p class="step-detail">Aller dans <strong>Certificats</strong> &rarr; Cliquer sur <strong>+ Nouveau certificat</strong>.</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Consultation</td><td>Consultation FINALIZED d'Amina Benali (aujourd'hui)</td></tr>
+              <tr><td>Type</td><td>Dropdown : <strong>REPOS</strong> / <strong>APTITUDE</strong> / <strong>INAPTITUDE</strong> / <strong>SCOLAIRE</strong> &mdash; s&eacute;lectionner <strong>REPOS</strong></td></tr>
+              <tr><td>Contenu</td><td>Pr&eacute;-rempli automatiquement selon le type choisi &mdash; modifiable</td></tr>
+              <tr><td>Nombre de jours</td><td><strong>3</strong> (champ suppl&eacute;mentaire affich&eacute; uniquement pour le type REPOS, plage 1-180)</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Cliquer sur <strong>Enregistrer</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le certificat est cr&eacute;&eacute;. Le contenu a &eacute;t&eacute; auto-rempli avec le mod&egrave;le de certificat de repos.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> Seules les consultations <strong>finalis&eacute;es</strong> apparaissent dans la liste. Le champ <strong>&laquo; Nombre de jours &raquo;</strong> (1-180) n'appara&icirc;t que pour le type <strong>REPOS</strong>. L'impression est disponible via le bouton <strong>Imprimer</strong>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 5.5 ──────────────────────────────────── -->
+  <div class="scenario" id="s5-5">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">18</span>
+      <span class="scenario-title">Imprimer les documents m&eacute;dicaux</span>
+      <span class="scenario-role role-docteur">Docteur</span>
+      <span class="duration">~3 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Une ordonnance (Sc&eacute;nario 16) et un certificat (Sc&eacute;nario 17) ont &eacute;t&eacute; cr&eacute;&eacute;s.
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Imprimer l'ordonnance</p>
+          <p class="step-detail">Ouvrir l'ordonnance &rarr; Cliquer sur <strong>Imprimer</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La bo&icirc;te de dialogue d'impression native s'ouvre. L'aper&ccedil;u affiche : en-t&ecirc;te du cabinet, informations patient, liste des m&eacute;dicaments, date et signature du docteur.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Imprimer le certificat</p>
+          <p class="step-detail">Ouvrir le certificat &rarr; Cliquer sur <strong>Imprimer</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> L'aper&ccedil;u d'impression s'affiche avec en-t&ecirc;te du cabinet, type de certificat (REPOS), identit&eacute; patient, nombre de jours et cachet du m&eacute;decin.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">Imprimer la facture (apr&egrave;s Phase 6)</p>
+          <p class="step-detail">Ce test sera compl&eacute;t&eacute; apr&egrave;s la cr&eacute;ation de la facture (Phase 6). Ouvrir la facture &rarr; Cliquer sur <strong>Imprimer</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> L'impression des trois types de documents (ordonnance, certificat, facture) est fonctionnelle.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> L'impression fonctionne directement avec votre imprimante locale. Aucun serveur distant n'est n&eacute;cessaire.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 6 : FACTURATION                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="phase" id="phase-6">
+  <p class="phase-eyebrow">Phase 6</p>
+  <h2 class="phase-title">Facturation &mdash; Factures &amp; Paiements</h2>
+  <p class="phase-desc">Cr&eacute;er des factures li&eacute;es aux consultations, enregistrer des paiements (6 modes) et suivre le statut automatique (Impay&eacute;e &rarr; Partielle &rarr; R&eacute;gl&eacute;e).</p>
+
+  <!-- ── Scénario 6.1 ──────────────────────────────────── -->
+  <div class="scenario" id="s6-1">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">19</span>
+      <span class="scenario-title">Cr&eacute;er une facture</span>
+      <span class="scenario-role role-secretaire">Secr&eacute;taire</span>
+      <span class="duration">~2 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> La consultation d'Amina Benali est finalis&eacute;e (Sc&eacute;nario 15).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Cr&eacute;er une facture</p>
+          <p class="step-detail">Aller dans <strong>Facturation</strong> &rarr; Cliquer sur <strong>+ Nouvelle facture</strong>. Remplir le formulaire :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Consultation</td><td>Consultation d'Amina Benali (rempli automatiquement)</td></tr>
+              <tr><td>Patient</td><td>Amina Benali (rempli automatiquement)</td></tr>
+              <tr><td>Montant total</td><td>2000 DA</td></tr>
+              <tr><td>M&eacute;decin</td><td>Rempli automatiquement</td></tr>
+              <tr><td>Notes</td><td>Consultation g&eacute;n&eacute;rale (optionnel)</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Cliquer sur <strong>Cr&eacute;er la facture</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La facture est cr&eacute;&eacute;e avec le statut <strong>Impay&eacute;e</strong>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 6.2 ──────────────────────────────────── -->
+  <div class="scenario" id="s6-2">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">20</span>
+      <span class="scenario-title">Enregistrer un paiement</span>
+      <span class="scenario-role role-secretaire">Secr&eacute;taire</span>
+      <span class="duration">~2 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> La facture a &eacute;t&eacute; cr&eacute;&eacute;e (Sc&eacute;nario 19) avec le statut <strong>Impay&eacute;e</strong>.
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Ajouter un paiement</p>
+          <p class="step-detail">Ouvrir la facture &rarr; Cliquer sur <strong>Ajouter un paiement</strong>. Remplir le formulaire :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Montant</td><td>2000 DA</td></tr>
+              <tr><td>M&eacute;thode</td><td>Dropdown : <strong>ESPECES</strong> / <strong>CHEQUE</strong> / <strong>VIREMENT</strong> / <strong>EDAHABIA</strong> / <strong>BARIDIMOB</strong> / <strong>CIB</strong> &mdash; s&eacute;lectionner <strong>ESPECES</strong></td></tr>
+              <tr><td>Date de paiement</td><td>Aujourd'hui</td></tr>
+              <tr><td>Note</td><td>Paiement complet en esp&egrave;ces (optionnel)</td></tr>
+            </table>
+          </div>
+          <p class="step-detail">Cliquer sur <strong>Enregistrer le paiement</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le statut de la facture passe automatiquement &agrave; <strong>R&eacute;gl&eacute;e</strong> (le montant pay&eacute; &eacute;gale le montant total). Le paiement appara&icirc;t dans la liste des paiements de la fen&ecirc;tre de d&eacute;tail.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Imprimer la facture</p>
+          <p class="step-detail">Cliquer sur <strong>Imprimer</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La facture s'affiche en format imprimable avec : en-t&ecirc;te du cabinet, d&eacute;tails patient, montant, mode de paiement et statut &laquo; R&eacute;gl&eacute;e &raquo;.</div>
+        </div>
+      </div>
+
+      <div class="info"><span class="info-icon">&#8505;</span> Vous pouvez tester un paiement partiel : enregistrer 1000 DA sur 2000 DA &rarr; le statut passe automatiquement &agrave; <strong>Paiement partiel</strong>, puis ajouter les 1000 DA restants &rarr; <strong>R&eacute;gl&eacute;e</strong>. Le statut est calcul&eacute; automatiquement : <strong>Impay&eacute;e</strong> (0 DA pay&eacute;) &rarr; <strong>Paiement partiel</strong> (montant partiel) &rarr; <strong>R&eacute;gl&eacute;e</strong> (montant total atteint).</div>
+
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 7 : VÉRIFICATION & MAINTENANCE                                  -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="phase" id="phase-7">
+  <p class="phase-eyebrow">Phase 7</p>
+  <h2 class="phase-title">V&eacute;rification &amp; Maintenance</h2>
+  <p class="phase-desc">V&eacute;rifier l'int&eacute;grit&eacute; des donn&eacute;es dans chaque module, tester l'impression de chaque type de document, v&eacute;rifier le fonctionnement hors ligne, la licence et Dr. Amira.</p>
+
+  <!-- ── Scénario 7.1 ──────────────────────────────────── -->
+  <div class="scenario" id="s7-1">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">21</span>
+      <span class="scenario-title">V&eacute;rifier les donn&eacute;es dans chaque module</span>
+      <span class="scenario-role role-admin">Admin</span>
+      <span class="duration">~5 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Toutes les phases pr&eacute;c&eacute;dentes (1 &agrave; 6) sont termin&eacute;es.
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier les patients</p>
+          <p class="step-detail">Aller dans <strong>Patients</strong> &rarr; Cliquer sur <strong>Amina Benali</strong> pour ouvrir sa fiche.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La fiche patient s'affiche avec : pr&eacute;nom, nom, t&eacute;l&eacute;phone, date de naissance, sexe (F). Les champs optionnels (email, NSS, wilaya, commune) sont pr&eacute;sents s'ils ont &eacute;t&eacute; remplis.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier la consultation</p>
+          <p class="step-detail">Aller dans <strong>Consultations</strong>. La consultation d'Amina Benali doit appara&icirc;tre dans la liste. Cliquer dessus pour ouvrir le d&eacute;tail.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La consultation finalis&eacute;e est visible avec : signes vitaux (12/8, 65 kg, 37.2&deg;C), examen clinique, diagnostic &laquo; Gastrite aigu&euml; &raquo;, traitement et notes.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier l'ordonnance</p>
+          <p class="step-detail">Aller dans <strong>Ordonnances</strong>. L'ordonnance doit appara&icirc;tre.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> L'ordonnance est visible avec les 3 lignes de m&eacute;dicaments (Om&eacute;prazole, Gaviscon, Spasfon).</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">4</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier le certificat</p>
+          <p class="step-detail">Aller dans <strong>Certificats</strong>. Le certificat doit appara&icirc;tre.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le certificat de type REPOS est visible avec la dur&eacute;e de 3 jours et le contenu auto-g&eacute;n&eacute;r&eacute;.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">5</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier la facture</p>
+          <p class="step-detail">Aller dans <strong>Facturation</strong>. La facture doit appara&icirc;tre.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La facture est visible avec le montant (2000 DA), le mode de paiement (Esp&egrave;ces) et le statut <strong>R&eacute;gl&eacute;e</strong>. La fen&ecirc;tre de d&eacute;tail affiche l'en-t&ecirc;te et la liste de tous les paiements.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">6</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier les employ&eacute;s</p>
+          <p class="step-detail">Aller dans <strong>Employ&eacute;s</strong>. V&eacute;rifier la pr&eacute;sence de l'admin et de l'invitation envoy&eacute;e.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le compte admin est pr&eacute;sent. L'invitation &agrave; [email_secretaire] est visible avec son statut.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">7</span>
+        <div class="step-content">
+          <p class="step-action">Rechercher un patient</p>
+          <p class="step-detail">Retourner dans <strong>Patients</strong>. Utiliser la barre de recherche pour chercher &laquo; <strong>Benali</strong> &raquo; ou &laquo; <strong>Amina</strong> &raquo; (recherche par nom/pr&eacute;nom).</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le patient est trouv&eacute; instantan&eacute;ment. La recherche est rapide et fonctionne enti&egrave;rement en local.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 7.2 ──────────────────────────────────── -->
+  <div class="scenario" id="s7-2">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">22</span>
+      <span class="scenario-title">Tester l'impression de chaque type de document</span>
+      <span class="scenario-role role-docteur">Docteur</span>
+      <span class="duration">~5 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Tous les documents ont &eacute;t&eacute; cr&eacute;&eacute;s (Phases 5 et 6). Une imprimante est configur&eacute;e sur le syst&egrave;me (ou utiliser &laquo; Imprimer en PDF &raquo;).
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">Imprimer chaque type de document</p>
+          <p class="step-detail">Ouvrir et imprimer chacun des documents suivants. V&eacute;rifier la mise en page, l'en-t&ecirc;te du cabinet et les donn&eacute;es patient :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Ordonnance</td><td>Cliquer sur <strong>Imprimer</strong> &mdash; 3 m&eacute;dicaments</td></tr>
+              <tr><td>Certificat</td><td>Cliquer sur <strong>Imprimer</strong> &mdash; Repos 3 jours</td></tr>
+              <tr><td>Facture</td><td>Cliquer sur <strong>Imprimer</strong> &mdash; 2000 DA R&eacute;gl&eacute;e</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> Chaque document s'imprime correctement avec : en-t&ecirc;te du cabinet (nom, adresse, t&eacute;l&eacute;phone, sp&eacute;cialit&eacute;), informations patient compl&egrave;tes et mise en page professionnelle.</div>
+          <div class="info"><span class="info-icon">&#8505;</span> L'impression fonctionne directement avec votre imprimante locale. Aucun serveur distant n'est n&eacute;cessaire.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 7.3 ──────────────────────────────────── -->
+  <div class="scenario" id="s7-3">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">23</span>
+      <span class="scenario-title">V&eacute;rifier le fonctionnement hors ligne</span>
+      <span class="scenario-role role-admin">Admin</span>
+      <span class="duration">~5 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> Toutes les phases pr&eacute;c&eacute;dentes sont termin&eacute;es. L'application est ouverte et fonctionnelle.
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">D&eacute;connecter internet</p>
+          <p class="step-detail">D&eacute;sactiver le Wi-Fi et/ou d&eacute;brancher le c&acirc;ble Ethernet. V&eacute;rifier que la machine n'a plus d'acc&egrave;s internet.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> La connexion internet est coup&eacute;e. Windows affiche &laquo; Pas d'acc&egrave;s internet &raquo;.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">Tester les fonctions principales sans internet</p>
+          <p class="step-detail">Ex&eacute;cuter les actions suivantes et v&eacute;rifier qu'elles fonctionnent normalement :</p>
+          <div class="step-data">
+            <table>
+              <tr><td>Connexion</td><td>Se d&eacute;connecter puis se reconnecter &rarr; fonctionne (auth locale)</td></tr>
+              <tr><td>Navigation</td><td>Parcourir toutes les pages (Patients, RDV, Consultations, etc.) &rarr; fonctionne</td></tr>
+              <tr><td>Cr&eacute;er un patient</td><td>Ajouter un nouveau patient test &rarr; fonctionne (base de donn&eacute;es locale)</td></tr>
+              <tr><td>Dr. Amira (Chat)</td><td>Poser une question m&eacute;dicale &rarr; fonctionne (mod&egrave;le IA local)</td></tr>
+              <tr><td>Impression</td><td>Imprimer un document &rarr; fonctionne (impression native)</td></tr>
+            </table>
+          </div>
+          <div class="result"><span class="result-icon">&#10003;</span> <strong>Toutes les fonctions sont op&eacute;rationnelles sans internet.</strong> La gestion des donn&eacute;es, l'intelligence artificielle (Dr. Amira) et l'impression fonctionnent enti&egrave;rement en local.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">R&eacute;activer internet</p>
+          <p class="step-detail">R&eacute;activer le Wi-Fi ou rebrancher le c&acirc;ble. V&eacute;rifier que l'application ne pr&eacute;sente aucun comportement anormal au retour de la connexion.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> L'application continue de fonctionner normalement. Aucune donn&eacute;e n'a &eacute;t&eacute; perdue pendant la p&eacute;riode hors ligne.</div>
+        </div>
+      </div>
+
+      <div class="note"><span class="note-icon">&#9888;</span> Dawini Desktop est con&ccedil;u pour fonctionner <strong>100% hors ligne</strong>. Internet n'est jamais requis apr&egrave;s l'installation initiale.</div>
+
+    </div>
+  </div>
+
+  <!-- ── Scénario 7.4 ──────────────────────────────────── -->
+  <div class="scenario" id="s7-4">
+    <div class="scenario-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="scenario-num">24</span>
+      <span class="scenario-title">V&eacute;rifier la licence et Dr. Amira</span>
+      <span class="scenario-role role-admin">Admin</span>
+      <span class="duration">~2 min</span>
+      <span class="scenario-chevron">&#9654;</span>
+    </div>
+    <div class="scenario-body">
+
+      <div class="prereqs">
+        <strong>Pr&eacute;requis :</strong> L'application est ouverte et fonctionnelle.
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier l'&eacute;tat de la licence</p>
+          <p class="step-detail">Aller dans <strong>Param&egrave;tres</strong> &rarr; onglet <strong>License</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> L'&eacute;tat de la licence est affich&eacute; : <strong>ACTIVE</strong>, <strong>TRIAL</strong> ou <strong>EXPIRED</strong>. Le nombre de jours restants est visible. Si n&eacute;cessaire, saisir une cl&eacute; de licence + code de parrainage (optionnel) pour activer.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier le statut de Dr. Amira</p>
+          <p class="step-detail">Aller dans <strong>Param&egrave;tres</strong> &rarr; onglet <strong>Amira</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le statut du mod&egrave;le IA est affich&eacute; : <strong>&laquo; Mod&egrave;le charg&eacute; &raquo;</strong> (badge vert) confirme que Dr. Amira est op&eacute;rationnelle.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <p class="step-action">V&eacute;rifier la version de l'application</p>
+          <p class="step-detail">Aller dans <strong>Param&egrave;tres</strong> &rarr; onglet <strong>Application</strong>.</p>
+          <div class="result"><span class="result-icon">&#10003;</span> Le num&eacute;ro de version est affich&eacute;. Le bouton <strong>&laquo; V&eacute;rifier les mises &agrave; jour &raquo;</strong> est fonctionnel.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- RÉCAPITULATIF                                                         -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="container" style="padding:48px 32px;">
+  <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius-card);padding:28px;">
+    <p style="font-family:var(--font-heading);font-weight:500;font-size:22px;color:var(--green);margin-bottom:16px;">R&eacute;capitulatif &mdash; Ce que vous avez valid&eacute;</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 32px;font-size:14px;color:var(--green);">
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Installation et premier lancement</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Configuration initiale (Cr&eacute;er mon cabinet)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Tableau de bord (4 indicateurs + liste RDV + actualisation automatique)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Param&egrave;tres (4 onglets : Cabinet, Amira, License, Application)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Configuration horaires / shifts (modale 7 jours)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Invitation employ&eacute; par email (lien 48h)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Dr. Amira &mdash; Indexation documents + biblioth&egrave;que</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Dr. Amira &mdash; Panneau Chat (actions rapides, sources r&eacute;f&eacute;renc&eacute;es)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Dr. Amira &mdash; Mode Whisper (indices inline vitaux)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Cr&eacute;ation patients (champs obligatoires + optionnels extensibles)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Calendrier hebdomadaire + suggestions de cr&eacute;neaux + s&eacute;lection rapide du motif</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> File d'attente double couloir (Rendez-vous + Sans rendez-vous + QR Code)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Consultation (En attente &rarr; En cours &rarr; Finalis&eacute;e)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Ordonnance (lignes m&eacute;dicaments + bouton Ajouter)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Certificat m&eacute;dical (4 types + auto-contenu + jours repos)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Facturation (Impay&eacute;e &rarr; Partielle &rarr; R&eacute;gl&eacute;e, 6 modes de paiement)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Impression native (ordonnance + certificat + facture)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> V&eacute;rification des donn&eacute;es dans chaque module</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Recherche patient (nom / pr&eacute;nom, pagination 20/page)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Fonctionnement 100% hors ligne confirm&eacute;</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Licence v&eacute;rifi&eacute;e (ACTIVE/TRIAL/EXPIRED)</label>
+      <label><input type="checkbox" style="margin-right:8px;accent-color:var(--green);"/> Dr. Amira op&eacute;rationnelle (mod&egrave;le charg&eacute;)</label>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                                -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <p>Dawini Desktop &middot; Votre cabinet m&eacute;dical, intelligent et hors ligne &middot; Application de bureau</p>
+  <p style="margin-top:8px;">Document g&eacute;n&eacute;r&eacute; en Avril 2026 &mdash; Version 1.1</p>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SCRIPTS                                                               -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<script>
+// Active TOC highlight on scroll
+const sections = document.querySelectorAll('.phase[id]');
+const tocLinks = document.querySelectorAll('.toc a');
+
+function updateToc() {
+  let current = '';
+  sections.forEach(section => {
+    const top = section.getBoundingClientRect().top;
+    if (top <= 120) current = section.id;
+  });
+  tocLinks.forEach(link => {
+    link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+  });
+}
+window.addEventListener('scroll', updateToc, { passive: true });
+updateToc();
+
+// Open first scenario by default
+document.querySelector('.scenario')?.classList.add('open');
+</script>
+</body>
+</html>

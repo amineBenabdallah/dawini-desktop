@@ -1,0 +1,67 @@
+@if (loading()) {
+  <div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+} @else if (error()) {
+  <div class="text-center p-5 text-danger">{{ error() }}</div>
+} @else if (data(); as d) {
+  <div class="print-page">
+    <!-- Header -->
+    <div class="print-header">
+      <div>
+        <div class="fw-bold fs-6">Dr {{ d.docteur.firstName }} {{ d.docteur.lastName }}</div>
+        @if (d.docteur.specialite) { <div class="text-muted small">{{ d.docteur.specialite }}</div> }
+      </div>
+      <div class="text-end">
+        <div class="fw-medium text-primary">ORDONNANCE</div>
+        <div class="text-muted small">N° {{ d.numero }}</div>
+        <div class="text-muted small">{{ formatDate(d.createdAt) }}</div>
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- Patient -->
+    <div class="mb-3">
+      <span class="text-muted small">Patient : </span>
+      <span class="fw-medium">{{ d.patient.firstName }} {{ d.patient.lastName }}</span>
+      @if (d.patient.dateNaissance) {
+        <span class="text-muted small ms-2">— Né(e) le {{ formatDate(d.patient.dateNaissance) }}</span>
+      }
+    </div>
+
+    <!-- Médicaments -->
+    <div class="print-meds">
+      @for (med of d.medicaments; track $index; let i = $index) {
+        <div class="print-med-item">
+          <div class="fw-semibold">{{ i + 1 }}. {{ med.nom }}</div>
+          <div class="ms-3 small">{{ med.posologie }}</div>
+          @if (med.duree) { <div class="ms-3 small text-muted">Durée : {{ med.duree }}</div> }
+        </div>
+      }
+    </div>
+
+    @if (d.instructions) {
+      <div class="mt-3 p-2 border rounded small">
+        <span class="fw-medium">Instructions : </span>{{ d.instructions }}
+      </div>
+    }
+
+    <!-- Signature -->
+    <div class="print-signature">
+      <div class="text-muted small mb-1">Cachet et signature</div>
+      <div class="signature-box"></div>
+    </div>
+  </div>
+}
+
+<style>
+  html, body { background: #fff !important; color: #212529 !important; }
+  .print-page { padding: 2cm; font-family: 'Segoe UI', sans-serif; max-width: 21cm; margin: auto; font-size: 12pt; background: #fff; color: #212529; }
+  .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+  .print-meds { margin: 1.5rem 0; }
+  .print-med-item { margin-bottom: 1rem; }
+  .print-signature { margin-top: 3rem; text-align: right; }
+  .signature-box { width: 120px; height: 80px; border: 1px solid #ccc; border-radius: 4px; display: inline-block; }
+  @media print { @page { size: A4; margin: 1.5cm; } }
+</style>

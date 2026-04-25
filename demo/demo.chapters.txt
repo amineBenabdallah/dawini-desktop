@@ -1,0 +1,8 @@
+0:00 Bonjour
+0:14 Amira
+0:46 Patient
+0:59 Consultation
+1:13 Ordonnance
+1:22 File attente
+1:59 Autres pages
+2:16 Fin de journee

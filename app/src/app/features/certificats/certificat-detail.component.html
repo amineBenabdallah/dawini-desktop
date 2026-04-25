@@ -1,0 +1,93 @@
+@if (loading()) {
+  <app-loading-spinner />
+} @else if (error()) {
+  <div class="text-center py-5">
+    <i class="bi bi-exclamation-triangle fs-2 text-warning d-block mb-2"></i>
+    <p class="text-muted">{{ error() }}</p>
+    <button class="btn btn-sm btn-outline-primary" (click)="goBack()">Retour à la liste</button>
+  </div>
+} @else if (certificat(); as c) {
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-secondary" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div>
+        <h5 class="mb-0 fw-semibold">{{ c.numero }}</h5>
+        <p class="text-muted small mb-0">{{ formatDate(c.dateEmission || c.createdAt) }}</p>
+      </div>
+      <span class="badge rounded-pill" [class]="typeBadgeClass(c.type)">{{ typeLabels[c.type] ?? c.type }}</span>
+      <app-status-badge [status]="c.statut" />
+    </div>
+
+    <div class="d-flex gap-2">
+      @if (canEdit()) {
+        <button class="btn btn-sm btn-outline-primary" (click)="goEdit()">
+          <i class="bi bi-pencil me-1"></i>Modifier
+        </button>
+      }
+      @if (canAnnul()) {
+        <button class="btn btn-sm btn-outline-danger" (click)="showAnnulModal.set(true)" [disabled]="annulling()">
+          <i class="bi bi-x-circle me-1"></i>Annuler
+        </button>
+      }
+      <button class="btn btn-sm btn-outline-secondary" (click)="goPrint()">
+        <i class="bi bi-printer me-1"></i>Imprimer
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <!-- Patient -->
+      <div class="cm-card mb-3">
+        <span class="text-muted small">Patient</span>
+        <div class="fw-semibold">{{ c.patient?.firstName }} {{ c.patient?.lastName }}</div>
+      </div>
+
+      <!-- Contenu -->
+      <div class="cm-card mb-3">
+        <span class="text-muted small fw-medium">Contenu du certificat</span>
+        <div class="mt-2" style="white-space: pre-wrap; line-height: 1.8;">{{ c.contenu }}</div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="cm-card">
+        <h6 class="fw-semibold mb-3"><i class="bi bi-patch-check me-1"></i>Détails</h6>
+        <div class="mb-2">
+          <span class="text-muted small">Type</span>
+          <div class="fw-medium">{{ typeLabels[c.type] ?? c.type }}</div>
+        </div>
+        @if (c.type === 'REPOS' && c.joursRepos) {
+          <div class="mb-2">
+            <span class="text-muted small">Jours de repos</span>
+            <div class="fw-medium">{{ c.joursRepos }} jour(s)</div>
+          </div>
+        }
+        <div>
+          <span class="text-muted small">Numéro</span>
+          <div class="fw-medium">{{ c.numero }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (!isSameDay() && isActive()) {
+    <div class="alert alert-info small mt-3 mb-0">
+      <i class="bi bi-info-circle me-1"></i>
+      La modification n'est possible que le jour de création du certificat.
+    </div>
+  }
+
+  <app-confirm-modal
+    [visible]="showAnnulModal()"
+    title="Annuler le certificat"
+    message="Ce certificat sera marqué comme annulé. Continuer ?"
+    confirmLabel="Annuler le certificat"
+    (confirm)="confirmAnnul()"
+    (cancel)="showAnnulModal.set(false)"
+  />
+}

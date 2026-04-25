@@ -1,0 +1,624 @@
+<!-- ── Shell ──────────────────────────────────────────────────────────────── -->
+<div class="q-shell">
+
+  <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
+  <div class="q-toolbar">
+    <div class="q-toolbar__left">
+      <h1 class="q-toolbar__title">File d'attente</h1>
+      <span class="q-live-dot" title="Mise à jour auto toutes les 10 s"></span>
+    </div>
+    <div class="q-toolbar__right">
+      <button class="q-btn q-btn--ghost" (click)="openQr()" title="QR Code salle d'attente">
+        <i class="bi bi-qr-code-scan"></i>
+        <span class="q-btn__label">QR Code</span>
+      </button>
+      <button class="q-btn q-btn--primary" (click)="callNext()" [disabled]="calling()">
+        @if (calling()) { <span class="spinner-border spinner-border-sm"></span> }
+        @else { <i class="bi bi-bell-fill"></i> }
+        <span class="q-btn__label">Appeler suivant</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Stats bar ─────────────────────────────────────────────────────────── -->
+  <div class="q-stats-bar">
+    <div class="q-stat q-stat--waiting">
+      <span class="q-stat__dot"></span>
+      <span class="q-stat__value">{{ totalWaiting() }}</span>
+      <span class="q-stat__label">en attente</span>
+    </div>
+    <div class="q-stat__sep"></div>
+    <div class="q-stat q-stat--appt">
+      <i class="bi bi-calendar-check"></i>
+      <span class="q-stat__value">{{ apptLane().length }}</span>
+      <span class="q-stat__label">rendez-vous</span>
+    </div>
+    <div class="q-stat__sep"></div>
+    <div class="q-stat q-stat--walkin">
+      <i class="bi bi-person-walking"></i>
+      <span class="q-stat__value">{{ walkInLane().length }}</span>
+      <span class="q-stat__label">sans RDV</span>
+    </div>
+  </div>
+
+  <!-- ── Lanes ─────────────────────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="q-skeleton-wrap">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="q-sk-row">
+          <div class="q-sk q-sk--num"></div>
+          <div class="q-sk q-sk--av"></div>
+          <div class="q-sk-body">
+            <div class="q-sk q-sk--line" style="width:58%"></div>
+          </div>
+          <div class="q-sk q-sk--line" style="width:40px;flex-shrink:0"></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="q-lanes">
+
+      <!-- ══ APPOINTMENT LANE ═══════════════════════════════════════════════ -->
+      <div class="q-lane">
+
+        <div class="q-lane__head q-lane__head--appt">
+          <div class="q-lane__head-left">
+            <div class="q-lane__icon-wrap"><i class="bi bi-calendar-check"></i></div>
+            <span class="q-lane__label">Rendez-vous</span>
+            <span class="q-lane__count">{{ apptLane().length }}</span>
+          </div>
+          <button class="q-lane__fab q-lane__fab--appt"
+                  (click)="toggleCheckinPanel()"
+                  [title]="showCheckinPanel() ? 'Fermer' : 'Enregistrer une arrivée'">
+            <i class="bi" [class.bi-person-check-fill]="!showCheckinPanel()" [class.bi-x-lg]="showCheckinPanel()"></i>
+          </button>
+        </div>
+
+        @if (showCheckinPanel()) {
+          <div class="q-checkin-panel">
+            @if (checkinPanelLoading()) {
+              <div class="q-checkin-msg"><span class="spinner-border spinner-border-sm me-2"></span>Chargement…</div>
+            } @else if (pendingCheckins().length === 0) {
+              <div class="q-checkin-msg"><i class="bi bi-check-all me-1"></i>Tous les patients sont enregistrés</div>
+            } @else {
+              @for (item of pendingCheckins(); track item.rdvId) {
+                <div class="q-checkin-row">
+                  <div class="q-checkin-av">{{ item.patientName.charAt(0).toUpperCase() }}</div>
+                  <div class="q-checkin-info">
+                    <div class="q-checkin-name">{{ item.patientName }}</div>
+                    <div class="q-checkin-meta">
+                      <i class="bi bi-clock"></i> {{ formatTime(item.appointmentTime) }}
+                      <span class="q-checkin-num">{{ item.patientNumber }}</span>
+                    </div>
+                  </div>
+                  <button class="q-checkin-btn"
+                          (click)="checkinRdv(item.rdvId, item.patientName)"
+                          [disabled]="checkinActionId() !== null">
+                    @if (checkinActionId() === item.rdvId) { <span class="spinner-border spinner-border-sm"></span> }
+                    @else { <i class="bi bi-box-arrow-in-right"></i> }
+                  </button>
+                </div>
+              }
+            }
+          </div>
+        }
+
+        <!-- ── Now Serving ───────────────────────────────────────────────── -->
+        @for (token of calledAppt(); track token.id) {
+          <div class="q-serving q-serving--appt">
+            <div class="q-serving__icon"><i class="bi bi-bell-fill"></i></div>
+            <div class="q-serving__body">
+              <span class="q-serving__label">En consultation</span>
+              <span class="q-serving__name">{{ token.patientName }}</span>
+              @if (token.appointmentTime) {
+                <span class="q-serving__sub"><i class="bi bi-clock me-1"></i>{{ formatTime(token.appointmentTime) }}</span>
+              }
+            </div>
+            <div class="q-serving__acts">
+              <button class="q-sact q-sact--done" (click)="markDone(token)" [disabled]="isActioning(token.id)">
+                @if (isActioning(token.id)) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-check-circle-fill"></i> }
+                <span>Entré</span>
+              </button>
+              <button class="q-sact q-sact--absent" (click)="markAbsent(token)" [disabled]="isActioning(token.id)">
+                <i class="bi bi-person-x-fill"></i><span>Absent</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- ── Waiting queue ──────────────────────────────────────────────── -->
+        <div class="q-table">
+          @if (waitingAppt().length === 0 && calledAppt().length === 0) {
+            <div class="q-empty"><i class="bi bi-calendar-x q-empty__icon"></i><span>Aucun rendez-vous en salle</span></div>
+          }
+          @for (token of waitingAppt(); track token.id; let i = $index) {
+            <div class="q-row q-row--appt">
+              <span class="q-row__pos">{{ (i + 1).toString().padStart(2, '0') }}</span>
+              <span class="q-row__av">{{ token.patientName.charAt(0).toUpperCase() }}</span>
+              <div class="q-row__info">
+                <span class="q-row__name">{{ token.patientName }}</span>
+                @if (token.appointmentTime) {
+                  <span class="q-row__badge">{{ formatTime(token.appointmentTime) }}</span>
+                }
+              </div>
+              <span class="q-row__ago">{{ arrivedAgo(token.arrivedAt) }}</span>
+              <div class="q-row__acts">
+                <button class="q-ract q-ract--call" (click)="manualCall(token)" [disabled]="isActioning(token.id)" title="Appeler">
+                  @if (isActioning(token.id)) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-megaphone-fill"></i> }
+                </button>
+                <button class="q-ract q-ract--absent" (click)="markAbsent(token)" [disabled]="isActioning(token.id)" title="Absent">
+                  <i class="bi bi-person-x-fill"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <!-- ══ WALK-IN LANE ═══════════════════════════════════════════════════ -->
+      <div class="q-lane">
+
+        <div class="q-lane__head q-lane__head--walkin">
+          <div class="q-lane__head-left">
+            <div class="q-lane__icon-wrap"><i class="bi bi-person-walking"></i></div>
+            <span class="q-lane__label">Sans rendez-vous</span>
+            <span class="q-lane__count">{{ walkInLane().length }}</span>
+          </div>
+          <button class="q-lane__fab q-lane__fab--walkin"
+                  (click)="toggleAddForm()"
+                  [title]="showAddForm() ? 'Annuler' : 'Ajouter un patient'">
+            <i class="bi" [class.bi-plus-lg]="!showAddForm()" [class.bi-x-lg]="showAddForm()"></i>
+          </button>
+        </div>
+
+        @if (showAddForm()) {
+          <div class="q-add-form">
+            <select class="q-add-input" [disabled]="addLoading()" (change)="onPatientSelect($event)">
+              <option value="">-- Sélectionner un patient --</option>
+              @for (p of patients(); track p.id) {
+                <option [value]="p.id">{{ p.lastName }} {{ p.firstName }}</option>
+              }
+            </select>
+            <button class="q-add-confirm" (click)="addWalkIn()"
+                    [disabled]="!addPatientId() || addLoading()">
+              @if (addLoading()) { <span class="spinner-border spinner-border-sm"></span> }
+              @else { <i class="bi bi-check-lg"></i> }
+            </button>
+          </div>
+        }
+
+        <!-- ── Now Serving ───────────────────────────────────────────────── -->
+        @for (token of calledWalkIn(); track token.id) {
+          <div class="q-serving q-serving--walkin">
+            <div class="q-serving__icon"><i class="bi bi-bell-fill"></i></div>
+            <div class="q-serving__body">
+              <span class="q-serving__label">En consultation</span>
+              <span class="q-serving__name">{{ token.patientName }}</span>
+              <span class="q-serving__sub"><i class="bi bi-clock me-1"></i>arrivé {{ arrivedAgo(token.arrivedAt) }}</span>
+            </div>
+            <div class="q-serving__acts">
+              <button class="q-sact q-sact--done" (click)="markDone(token)" [disabled]="isActioning(token.id)">
+                @if (isActioning(token.id)) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-check-circle-fill"></i> }
+                <span>Entré</span>
+              </button>
+              <button class="q-sact q-sact--absent" (click)="markAbsent(token)" [disabled]="isActioning(token.id)">
+                <i class="bi bi-person-x-fill"></i><span>Absent</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- ── Waiting queue ──────────────────────────────────────────────── -->
+        <div class="q-table">
+          @if (waitingWalkIn().length === 0 && calledWalkIn().length === 0) {
+            <div class="q-empty"><i class="bi bi-people q-empty__icon"></i><span>Aucun patient sans RDV</span></div>
+          }
+          @for (token of waitingWalkIn(); track token.id; let i = $index) {
+            <div class="q-row q-row--walkin">
+              <span class="q-row__pos">{{ (i + 1).toString().padStart(2, '0') }}</span>
+              <span class="q-row__av">{{ token.patientName.charAt(0).toUpperCase() }}</span>
+              <div class="q-row__info">
+                <span class="q-row__name">{{ token.patientName }}</span>
+              </div>
+              <span class="q-row__ago">{{ arrivedAgo(token.arrivedAt) }}</span>
+              <div class="q-row__acts">
+                <button class="q-ract q-ract--call" (click)="manualCall(token)" [disabled]="isActioning(token.id)" title="Appeler">
+                  @if (isActioning(token.id)) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-megaphone-fill"></i> }
+                </button>
+                <button class="q-ract q-ract--absent" (click)="markAbsent(token)" [disabled]="isActioning(token.id)" title="Absent">
+                  <i class="bi bi-person-x-fill"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+
+    </div>
+  }
+
+</div>
+
+<!-- ── QR Modal ────────────────────────────────────────────────────────────── -->
+@if (showQr()) {
+  <div class="qr-backdrop" (click)="closeQr()">
+    <div class="qr-modal" (click)="$event.stopPropagation()">
+      <button class="qr-close" (click)="closeQr()"><i class="bi bi-x-lg"></i></button>
+      <div class="qr-icon-wrap"><i class="bi bi-qr-code-scan"></i></div>
+      <h6 class="qr-title">Salle d'attente patients</h6>
+      <p class="qr-hint">Les patients scannent ce QR code à la réception pour rejoindre la file</p>
+      @if (qrDataUrl()) { <img [src]="qrDataUrl()" alt="QR Code" class="qr-img" /> }
+      <div class="qr-url-row">
+        <span class="qr-url-text">{{ waitingRoomUrl() }}</span>
+        <button class="qr-copy-btn" (click)="copyLink()"><i class="bi bi-clipboard me-1"></i>Copier</button>
+      </div>
+      <a [href]="waitingRoomUrl()" target="_blank" class="qr-open-link">
+        <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir dans un onglet
+      </a>
+    </div>
+  </div>
+}
+
+<style>
+/* ══════════════════════════════════════════════════════════════════════════════
+   SHELL + TOOLBAR + STATS (unchanged)
+══════════════════════════════════════════════════════════════════════════════ */
+.q-shell {
+  display: flex; flex-direction: column;
+  margin: -1.5rem;
+  height: calc(100vh - var(--cm-header-height, 60px));
+  height: calc(100dvh - var(--cm-header-height, 60px));
+  overflow: hidden; background: #f1f5f9;
+}
+
+.q-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .45rem 1.25rem; background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15,23,42,.04);
+  flex-shrink: 0; gap: .75rem; z-index: 1;
+}
+.q-toolbar__left  { display: flex; align-items: center; gap: .65rem; }
+.q-toolbar__right { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+.q-toolbar__title { font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0; letter-spacing: -.01em; }
+
+.q-live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #22c55e;
+  animation: live-pulse 2.2s ease-in-out infinite; flex-shrink: 0;
+}
+@keyframes live-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(34,197,94,.5); }
+  70%  { box-shadow: 0 0 0 7px rgba(34,197,94,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+}
+
+.q-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .3rem .85rem; border-radius: 8px; font-size: .78rem; font-weight: 600;
+  cursor: pointer; border: none; white-space: nowrap;
+  transition: all .18s cubic-bezier(.22,1,.36,1);
+}
+.q-btn--ghost  { background: #fff; border: 1px solid #e2e8f0; color: #475569; }
+.q-btn--ghost:hover { background: #f1f5f9; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+.q-btn--primary {
+  background: linear-gradient(135deg,#2563eb,#1d4ed8); color: #fff;
+  box-shadow: 0 2px 8px rgba(37,99,235,.3);
+}
+.q-btn--primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,.38); }
+.q-btn--primary:disabled { opacity: .6; cursor: not-allowed; }
+
+.q-stats-bar {
+  display: flex; align-items: center; gap: 1.25rem;
+  padding: .5rem 1.25rem; background: #fff;
+  border-bottom: 1px solid #e2e8f0; flex-shrink: 0;
+}
+.q-stat { display: flex; align-items: center; gap: .4rem; font-size: .75rem; }
+.q-stat__value { font-weight: 800; font-size: .9rem; color: #0f172a; }
+.q-stat__label { color: #64748b; }
+.q-stat__sep   { width: 1px; height: 18px; background: #e2e8f0; }
+.q-stat--waiting .q-stat__dot { width: 8px; height: 8px; border-radius: 50%; background: #2563eb; flex-shrink: 0; }
+.q-stat--appt   { color: #2563eb; }
+.q-stat--walkin { color: #16a34a; }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   LANES GRID
+══════════════════════════════════════════════════════════════════════════════ */
+.q-lanes {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  padding: 1rem; flex: 1; overflow: hidden;
+}
+@media (max-width: 768px) { .q-lanes { grid-template-columns: 1fr; overflow-y: auto; } }
+
+.q-lane {
+  display: flex; flex-direction: column;
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 2px 12px rgba(15,23,42,.07);
+  background: #f8fafc;
+  min-height: 0;
+}
+
+/* ── Lane header ─────────────────────────────────────────────────────────── */
+.q-lane__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .65rem 1rem; flex-shrink: 0;
+}
+.q-lane__head--appt   { background: #1e40af; }
+.q-lane__head--walkin { background: #15803d; }
+
+.q-lane__head-left { display: flex; align-items: center; gap: .6rem; }
+
+.q-lane__icon-wrap {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(255,255,255,.18);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .85rem; color: #fff; flex-shrink: 0;
+}
+
+.q-lane__label { font-size: .78rem; font-weight: 700; color: #fff; letter-spacing: .01em; }
+
+.q-lane__count {
+  background: rgba(255,255,255,.22); color: #fff;
+  border-radius: 99px; padding: .1rem .55rem;
+  font-size: .7rem; font-weight: 700;
+}
+
+.q-lane__fab {
+  width: 28px; height: 28px; border-radius: 8px; border: none; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .82rem; cursor: pointer;
+  background: rgba(255,255,255,.18); color: #fff;
+  transition: background .15s;
+}
+.q-lane__fab:hover { background: rgba(255,255,255,.32); }
+
+/* lane body removed — replaced by q-serving + q-table */
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   NOW SERVING — amber banner pinned above the queue scroll
+══════════════════════════════════════════════════════════════════════════════ */
+.q-serving {
+  display: flex; align-items: center; gap: .65rem;
+  padding: .6rem .9rem;
+  border-left: 4px solid #f59e0b;
+  border-bottom: 1px solid #fde68a;
+  flex-shrink: 0;
+  animation: serving-in .28s cubic-bezier(.22,1,.36,1) both,
+             serving-breathe 2.4s ease-in-out infinite;
+}
+.q-serving--appt,
+.q-serving--walkin { background: linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%); }
+
+@keyframes serving-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes serving-breathe {
+  0%,100% { border-left-color: #f59e0b; box-shadow: none; }
+  50%     { border-left-color: #fbbf24; box-shadow: inset 0 0 60px rgba(251,191,36,.1); }
+}
+
+.q-serving__icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: #f59e0b; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; flex-shrink: 0;
+  animation: bell-shake .6s ease-in-out infinite;
+}
+@keyframes bell-shake {
+  0%,100% { transform: rotate(0); }
+  20%     { transform: rotate(-20deg); }
+  65%     { transform: rotate(20deg); }
+}
+
+.q-serving__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .05rem; }
+.q-serving__label { font-size: .57rem; font-weight: 800; letter-spacing: .12em; color: #92400e; text-transform: uppercase; }
+.q-serving__name  { font-size: .86rem; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
+.q-serving__sub   { font-size: .67rem; color: #78350f; }
+
+.q-serving__acts { display: flex; gap: .28rem; flex-shrink: 0; }
+.q-sact {
+  display: inline-flex; align-items: center; gap: .28rem;
+  padding: .28rem .58rem; border-radius: 8px; border: none;
+  font-size: .68rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  transition: all .14s cubic-bezier(.22,1,.36,1);
+}
+.q-sact:hover:not(:disabled) { transform: translateY(-1px); }
+.q-sact:disabled { opacity: .45; cursor: not-allowed; }
+.q-sact--done   { background: #dcfce7; color: #15803d; }
+.q-sact--done:hover:not(:disabled)   { background: #bbf7d0; box-shadow: 0 2px 8px rgba(22,163,74,.2); }
+.q-sact--absent { background: #fff1f2; color: #e11d48; }
+.q-sact--absent:hover:not(:disabled) { background: #ffe4e6; }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   QUEUE TABLE — compact dispatch-board rows
+══════════════════════════════════════════════════════════════════════════════ */
+.q-table {
+  flex: 1; overflow-y: auto; background: #fff;
+  scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
+}
+.q-table::-webkit-scrollbar { width: 3px; }
+.q-table::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+
+.q-row {
+  display: grid;
+  grid-template-columns: 36px 28px 1fr 50px 58px;
+  align-items: center; gap: .4rem;
+  padding: .4rem .7rem .4rem .6rem;
+  border-bottom: 1px solid #f1f5f9;
+  min-height: 46px;
+  transition: background .1s;
+  animation: row-in .2s cubic-bezier(.22,1,.36,1) both;
+}
+.q-row:last-child { border-bottom: none; }
+.q-row:hover { background: #f8fafc; }
+
+@keyframes row-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* position number */
+.q-row__pos {
+  font-size: 1.05rem; font-weight: 900; font-variant-numeric: tabular-nums;
+  line-height: 1; letter-spacing: -.04em; text-align: center;
+}
+.q-row--appt   .q-row__pos { color: #2563eb; }
+.q-row--walkin .q-row__pos { color: #16a34a; }
+
+/* avatar circle */
+.q-row__av {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .62rem; color: #fff; flex-shrink: 0;
+}
+.q-row--appt   .q-row__av { background: #2563eb; }
+.q-row--walkin .q-row__av { background: #16a34a; }
+
+/* name + time badge */
+.q-row__info { display: flex; align-items: center; gap: .35rem; min-width: 0; }
+.q-row__name { font-weight: 600; font-size: .8rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q-row__badge { font-size: .58rem; font-weight: 700; padding: .08rem .36rem; border-radius: 5px; background: #dbeafe; color: #1d4ed8; flex-shrink: 0; white-space: nowrap; }
+
+/* wait time */
+.q-row__ago { font-size: .67rem; color: #94a3b8; text-align: right; white-space: nowrap; }
+
+/* icon action buttons */
+.q-row__acts { display: flex; gap: .2rem; justify-content: flex-end; }
+.q-ract {
+  width: 26px; height: 26px; border-radius: 7px; border: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .7rem; cursor: pointer;
+  transition: all .13s cubic-bezier(.22,1,.36,1);
+}
+.q-ract:hover:not(:disabled) { transform: translateY(-1px); }
+.q-ract:disabled { opacity: .35; cursor: not-allowed; }
+.q-ract--call   { background: #dbeafe; color: #1d4ed8; }
+.q-ract--call:hover:not(:disabled)   { background: #bfdbfe; box-shadow: 0 2px 6px rgba(37,99,235,.22); }
+.q-ract--absent { background: #fff1f2; color: #e11d48; }
+.q-ract--absent:hover:not(:disabled) { background: #ffe4e6; }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   CHECKIN PANEL + ADD FORM
+══════════════════════════════════════════════════════════════════════════════ */
+.q-checkin-panel {
+  background: #eff6ff; border-bottom: 1px solid #dbeafe;
+  animation: slide-down .15s ease; flex-shrink: 0;
+}
+.q-checkin-msg {
+  text-align: center; padding: .75rem; font-size: .78rem; color: #64748b;
+}
+.q-checkin-row {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .5rem .9rem; border-bottom: 1px solid #dbeafe;
+  transition: background .12s;
+}
+.q-checkin-row:last-child { border-bottom: none; }
+.q-checkin-row:hover { background: #dbeafe; }
+.q-checkin-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #2563eb; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .75rem; flex-shrink: 0;
+}
+.q-checkin-info { flex: 1; min-width: 0; }
+.q-checkin-name { font-weight: 600; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q-checkin-meta { font-size: .68rem; color: #64748b; display: flex; gap: .4rem; align-items: center; }
+.q-checkin-num  { font-weight: 700; color: #2563eb; }
+.q-checkin-btn  {
+  background: #2563eb; color: #fff; border: none; border-radius: 7px;
+  width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .85rem; cursor: pointer; flex-shrink: 0; transition: background .15s;
+}
+.q-checkin-btn:hover:not(:disabled) { background: #1d4ed8; }
+.q-checkin-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.q-add-form {
+  display: flex; gap: .4rem; padding: .55rem .75rem;
+  background: #f0fdf4; border-bottom: 1px solid #bbf7d0;
+  animation: slide-down .15s ease; flex-shrink: 0;
+}
+.q-add-input {
+  flex: 1; border: 1.5px solid #86efac; border-radius: 8px;
+  padding: .35rem .7rem; font-size: .82rem; outline: none;
+  background: #fff; color: #0f172a; transition: border-color .15s;
+}
+.q-add-input:focus { border-color: #16a34a; }
+.q-add-confirm {
+  background: #16a34a; color: #fff; border: none; border-radius: 8px;
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .9rem; cursor: pointer; flex-shrink: 0; transition: background .15s;
+}
+.q-add-confirm:hover:not(:disabled) { background: #15803d; }
+.q-add-confirm:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   EMPTY + SKELETON
+══════════════════════════════════════════════════════════════════════════════ */
+.q-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .5rem; padding: 3rem 1rem; color: #cbd5e1; font-size: .82rem; flex: 1;
+}
+.q-empty__icon { font-size: 2.2rem; opacity: .35; }
+
+.q-skeleton-wrap {
+  flex: 1; margin: 1rem; border-radius: 12px; overflow: hidden;
+  background: #fff; box-shadow: 0 2px 12px rgba(15,23,42,.07);
+}
+.q-sk-row {
+  display: flex; align-items: center; gap: .45rem;
+  padding: .5rem .75rem; border-bottom: 1px solid #f1f5f9;
+}
+.q-sk { background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.3s infinite; }
+.q-sk--num  { width: 30px; height: 18px; border-radius: 4px; flex-shrink: 0; }
+.q-sk--av   { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; }
+.q-sk--line { height: 12px; border-radius: 4px; }
+.q-sk-body  { flex: 1; padding: 0 .2rem; }
+
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes slide-down { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   QR MODAL
+══════════════════════════════════════════════════════════════════════════════ */
+.qr-backdrop {
+  position: fixed; inset: 0; z-index: 1050;
+  background: rgba(15,23,42,.45); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem; animation: fade-in .15s ease;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.qr-modal {
+  background: #fff; border-radius: 20px; padding: 2rem 1.75rem 1.5rem;
+  width: 100%; max-width: 360px; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.18); position: relative;
+  animation: modal-up .22s cubic-bezier(.22,1,.36,1);
+}
+@keyframes modal-up { from { opacity:0; transform: translateY(16px) scale(.97); } to { opacity:1; transform: translateY(0) scale(1); } }
+.qr-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: none; border: none; color: #94a3b8;
+  font-size: 1rem; cursor: pointer; padding: .25rem; border-radius: 6px; transition: color .15s, background .15s;
+}
+.qr-close:hover { color: #1e293b; background: #f1f5f9; }
+.qr-icon-wrap { width: 52px; height: 52px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: .75rem; }
+.qr-title { font-weight: 700; font-size: 1rem; color: #0f172a; margin-bottom: .35rem; }
+.qr-hint  { font-size: .78rem; color: #64748b; margin-bottom: 1rem; line-height: 1.5; }
+.qr-img   { width: 200px; height: 200px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1rem; }
+.qr-url-row { display: flex; align-items: center; gap: .5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem .75rem; margin-bottom: .75rem; }
+.qr-url-text { flex: 1; font-size: .72rem; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.qr-copy-btn { flex-shrink: 0; background: #2563eb; color: #fff; border: none; border-radius: 7px; padding: .3rem .7rem; font-size: .72rem; font-weight: 600; cursor: pointer; transition: background .15s; }
+.qr-copy-btn:hover { background: #1d4ed8; }
+.qr-open-link { display: inline-block; font-size: .78rem; color: #2563eb; text-decoration: none; font-weight: 500; }
+.qr-open-link:hover { text-decoration: underline; }
+
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
+@media (max-width: 639px) {
+  .q-btn__label { display: none; }
+  .q-btn { padding: .3rem .5rem; }
+  .q-stats-bar { gap: .75rem; font-size: .7rem; }
+}
+</style>

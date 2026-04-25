@@ -1,0 +1,22 @@
+[
+  { "keyword": "douleur thoracique", "severity": "URGENTE", "action": "Passer en priorité", "description": "Risque SCA, embolie pulmonaire, dissection aortique" },
+  { "keyword": "douleur poitrine", "severity": "URGENTE", "action": "Passer en priorité", "description": "Évoquer syndrome coronarien aigu" },
+  { "keyword": "dyspnée", "severity": "URGENTE", "action": "Passer en priorité", "description": "Détresse respiratoire — évaluer saturation" },
+  { "keyword": "essoufflement", "severity": "URGENTE", "action": "Évaluer rapidement", "description": "Rechercher insuffisance cardiaque, asthme, EP" },
+  { "keyword": "perte de connaissance", "severity": "URGENTE", "action": "Passer en priorité", "description": "Syncope — rechercher cause cardiaque ou neurologique" },
+  { "keyword": "syncope", "severity": "URGENTE", "action": "Passer en priorité", "description": "ECG urgent, rechercher trouble du rythme" },
+  { "keyword": "AVC", "severity": "URGENTE", "action": "Appeler SAMU", "description": "Accident vasculaire cérébral — chaque minute compte" },
+  { "keyword": "paralysie", "severity": "URGENTE", "action": "Appeler SAMU", "description": "Déficit neurologique aigu — évoquer AVC" },
+  { "keyword": "hémorragie", "severity": "URGENTE", "action": "Passer en priorité", "description": "Saignement actif — évaluer état hémodynamique" },
+  { "keyword": "convulsion", "severity": "URGENTE", "action": "Passer en priorité", "description": "Crise épileptique — position latérale de sécurité" },
+  { "keyword": "allergie grave", "severity": "URGENTE", "action": "Passer en priorité", "description": "Risque anaphylaxie — adrénaline disponible" },
+  { "keyword": "choc", "severity": "URGENTE", "action": "Passer en priorité", "description": "État de choc — remplissage, monitoring" },
+  { "keyword": "fièvre enfant", "severity": "PRIORITAIRE", "action": "Voir rapidement", "description": "Fièvre pédiatrique — risque de convulsion fébrile" },
+  { "keyword": "fièvre nourrisson", "severity": "URGENTE", "action": "Passer en priorité", "description": "Fièvre < 3 mois = urgence pédiatrique" },
+  { "keyword": "douleur abdominale aiguë", "severity": "PRIORITAIRE", "action": "Voir rapidement", "description": "Rechercher appendicite, occlusion, péritonite" },
+  { "keyword": "vomissements sang", "severity": "URGENTE", "action": "Passer en priorité", "description": "Hématémèse — évaluer état hémodynamique" },
+  { "keyword": "céphalées brutales", "severity": "URGENTE", "action": "Passer en priorité", "description": "Céphalée en coup de tonnerre — évoquer HSA" },
+  { "keyword": "traumatisme crânien", "severity": "PRIORITAIRE", "action": "Voir rapidement", "description": "Évaluer Glasgow, rechercher signes de gravité" },
+  { "keyword": "brûlure", "severity": "PRIORITAIRE", "action": "Voir rapidement", "description": "Évaluer surface et profondeur — refroidir à l'eau" },
+  { "keyword": "fracture", "severity": "NORMALE", "action": "Voir dans l'ordre", "description": "Immobiliser, antalgique, orienter vers radiologie" }
+]

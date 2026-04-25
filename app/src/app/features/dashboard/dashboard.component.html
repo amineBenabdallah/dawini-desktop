@@ -1,0 +1,224 @@
+<!-- Page header -->
+<div class="d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
+  <div>
+    <h5 class="fw-semibold mb-0">Tableau de bord</h5>
+    <p class="text-muted small mb-0 mt-1 text-capitalize">{{ today }}</p>
+  </div>
+  <a routerLink="/appointments" class="btn btn-primary btn-sm d-flex align-items-center gap-1 flex-shrink-0">
+    <i class="bi bi-plus-lg"></i>
+    <span class="d-none d-sm-inline">Nouveau </span>RDV
+  </a>
+</div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="cm-stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+        <i class="bi bi-calendar-check fs-5"></i>
+      </div>
+      <div>
+        <div class="fs-4 fw-bold lh-1">{{ stats().todayAppointments }}</div>
+        <div class="text-muted small mt-1">RDV aujourd'hui</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="cm-stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+        <i class="bi bi-hourglass-split fs-5"></i>
+      </div>
+      <div>
+        <div class="fs-4 fw-bold lh-1">{{ stats().waitingPatients }}</div>
+        <div class="text-muted small mt-1">En salle d'attente</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="cm-stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon bg-success bg-opacity-10 text-success">
+        <i class="bi bi-people fs-5"></i>
+      </div>
+      <div>
+        <div class="fs-4 fw-bold lh-1">{{ stats().totalPatients }}</div>
+        <div class="text-muted small mt-1">Patients total</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="cm-stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+        <i class="bi bi-receipt fs-5"></i>
+      </div>
+      <div>
+        <div class="fs-4 fw-bold lh-1">{{ stats().unpaidInvoices }}</div>
+        <div class="text-muted small mt-1">Factures impayées</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Today's agenda -->
+<div class="cm-card">
+
+  <!-- Card header -->
+  <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-calendar-week text-primary"></i>
+      <h6 class="fw-semibold mb-0">Agenda du jour</h6>
+      @if (stats().todayAppointments > 0) {
+        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary" style="font-size:.7rem">
+          {{ stats().todayAppointments }}
+        </span>
+      }
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+      <!-- last-refreshed timestamp — hide on xs to prevent overflow -->
+      @if (lastRefreshed()) {
+        <span class="text-muted d-none d-sm-inline" style="font-size:.7rem">
+          <i class="bi bi-clock me-1 opacity-50"></i>{{ lastRefreshedLabel() }}
+        </span>
+      }
+      <button class="btn btn-sm btn-link text-muted p-0 refresh-btn"
+              (click)="loadAgenda(true)"
+              [disabled]="refreshing()"
+              title="Actualiser">
+        <i class="bi bi-arrow-clockwise" [class.spin]="refreshing()"></i>
+      </button>
+      <a routerLink="/appointments" class="btn btn-sm btn-link text-decoration-none p-0 text-primary small">
+        <span class="d-none d-sm-inline">Voir l'agenda →</span>
+        <i class="bi bi-arrow-right d-sm-none"></i>
+      </a>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <!-- Skeleton rows -->
+    <ul class="list-unstyled mb-0">
+      @for (i of [1,2,3]; track i) {
+        <li class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
+          <div class="skeleton" style="width:36px;height:14px;border-radius:4px"></div>
+          <div class="skeleton rounded-circle" style="width:32px;height:32px;flex-shrink:0"></div>
+          <div class="flex-grow-1">
+            <div class="skeleton mb-1" style="width:120px;height:13px;border-radius:4px"></div>
+            <div class="skeleton" style="width:70px;height:11px;border-radius:4px"></div>
+          </div>
+          <div class="skeleton" style="width:60px;height:20px;border-radius:99px"></div>
+        </li>
+      }
+    </ul>
+  } @else if (todayAppointments().length === 0) {
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-15"></i>
+      <div class="fw-medium">Aucun rendez-vous aujourd'hui</div>
+      <a routerLink="/appointments" class="btn btn-sm btn-outline-primary mt-3">
+        <i class="bi bi-plus-lg me-1"></i>Planifier un RDV
+      </a>
+    </div>
+  } @else {
+    <ul class="list-unstyled mb-0">
+      @for (appt of todayAppointments(); track appt.id) {
+        <li class="agenda-row" [attr.data-statut]="appt.statut">
+          <!-- Time -->
+          <div class="agenda-time">{{ formatTime(appt.dateHeure) }}</div>
+          <!-- Avatar -->
+          <div class="agenda-avatar" [attr.data-statut]="appt.statut">
+            {{ initials(appt) }}
+          </div>
+          <!-- Info -->
+          <div class="flex-grow-1 min-w-0">
+            <div class="fw-medium text-truncate" style="font-size:.85rem">
+              {{ appt.patientFirstName }} {{ appt.patientLastName }}
+            </div>
+            @if (appt.motif) {
+              <div class="text-muted text-truncate" style="font-size:.75rem">{{ appt.motif }}</div>
+            }
+          </div>
+          <!-- Status badge -->
+          <span class="agenda-badge" [attr.data-statut]="appt.statut">
+            {{ statusLabel(appt.statut) }}
+          </span>
+        </li>
+      }
+    </ul>
+  }
+
+</div>
+
+<style>
+  .stat-icon {
+    width: 44px; height: 44px; border-radius: .75rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Agenda rows ───────────────────────────────────────────── */
+  .agenda-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .65rem 1rem .65rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    border-left: 3px solid transparent;
+    transition: background .12s, border-color .12s;
+    cursor: default;
+  }
+  .agenda-row:last-child { border-bottom: none; }
+  .agenda-row:hover { background: #f8fafc; }
+
+  /* Colored left border by status */
+  .agenda-row[data-statut="PLANNED"]   { border-left-color: #93c5fd; }
+  .agenda-row[data-statut="CONFIRMED"] { border-left-color: #4ade80; }
+  .agenda-row[data-statut="WAITING"]   { border-left-color: #fbbf24; }
+  .agenda-row[data-statut="DONE"]      { border-left-color: #94a3b8; }
+  .agenda-row[data-statut="ABSENT"]    { border-left-color: #f87171; }
+  .agenda-row[data-statut="CANCELLED"] { border-left-color: #e2e8f0; opacity: .55; }
+
+  .agenda-time {
+    font-size: .82rem; font-weight: 700; color: #1e293b;
+    width: 42px; flex-shrink: 0; font-variant-numeric: tabular-nums;
+  }
+
+  /* Patient initials circle */
+  .agenda-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .65rem; font-weight: 800; letter-spacing: -.02em;
+    background: #e2e8f0; color: #475569;
+  }
+  .agenda-avatar[data-statut="PLANNED"]   { background: #dbeafe; color: #1d4ed8; }
+  .agenda-avatar[data-statut="CONFIRMED"] { background: #dcfce7; color: #15803d; }
+  .agenda-avatar[data-statut="WAITING"]   { background: #fef9c3; color: #b45309; }
+  .agenda-avatar[data-statut="DONE"]      { background: #f1f5f9; color: #64748b; }
+  .agenda-avatar[data-statut="ABSENT"]    { background: #fee2e2; color: #dc2626; }
+
+  /* Status pill */
+  .agenda-badge {
+    flex-shrink: 0; font-size: .68rem; font-weight: 700;
+    padding: .2rem .55rem; border-radius: 99px;
+    background: #e2e8f0; color: #64748b;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .agenda-badge[data-statut="PLANNED"]   { background: #dbeafe; color: #1d4ed8; }
+  .agenda-badge[data-statut="CONFIRMED"] { background: #dcfce7; color: #15803d; }
+  .agenda-badge[data-statut="WAITING"]   { background: #fef9c3; color: #92400e; }
+  .agenda-badge[data-statut="DONE"]      { background: #f1f5f9; color: #475569; }
+  .agenda-badge[data-statut="ABSENT"]    { background: #fee2e2; color: #dc2626; }
+  .agenda-badge[data-statut="CANCELLED"] { background: #f1f5f9; color: #94a3b8; }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s infinite;
+  }
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+  }
+
+  /* Refresh button spin */
+  .refresh-btn { line-height: 1; }
+  .spin { animation: spin .7s linear infinite; display: inline-block; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>

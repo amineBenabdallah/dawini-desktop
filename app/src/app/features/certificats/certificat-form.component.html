@@ -1,0 +1,83 @@
+@if (loading()) {
+  <app-loading-spinner />
+} @else {
+
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <button class="cm-btn-secondary" (click)="cancel()" style="padding: .45rem .75rem;">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <h5 class="mb-0 fw-semibold">{{ isEdit() ? 'Modifier le certificat' : 'Nouveau certificat' }}</h5>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <!-- Consultation picker (create only) -->
+      @if (!isEdit()) {
+        <div class="cm-card mb-3">
+          <div class="cm-form-section-title"><i class="bi bi-clipboard2-check"></i> Consultation</div>
+          <div class="cm-form-group">
+            <label class="cm-form-label">Consultation finalisée <span class="required">*</span></label>
+            <div class="cm-input-icon-wrapper">
+              <i class="bi bi-search"></i>
+              <select class="cm-input w-100" [(ngModel)]="consultationId">
+                <option value="">-- Sélectionner une consultation --</option>
+                @for (c of consultations(); track c.id) {
+                  <option [value]="c.id">{{ formatDate(c.dateConsultation) }} -- {{ c.patient?.firstName }} {{ c.patient?.lastName }} -- {{ c.motif }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Type + content -->
+      <div class="cm-card mb-3">
+        <div class="cm-form-section-title"><i class="bi bi-patch-check"></i> Certificat</div>
+
+        <div class="cm-form-group">
+          <label class="cm-form-label">Type <span class="required">*</span></label>
+          <select class="cm-input w-100" [(ngModel)]="type" (change)="onTypeChange()">
+            <option value="">-- Sélectionner le type --</option>
+            <option value="REPOS">Repos médical</option>
+            <option value="APTITUDE">Aptitude</option>
+            <option value="INAPTITUDE">Inaptitude</option>
+            <option value="SCOLAIRE">Scolaire</option>
+          </select>
+        </div>
+
+        <div class="cm-form-group">
+          <label class="cm-form-label">Contenu <span class="required">*</span></label>
+          <textarea class="cm-input w-100" rows="7" maxlength="2000"
+                    [(ngModel)]="contenu" placeholder="Contenu du certificat..."></textarea>
+          <div class="cm-char-count">{{ contenu.length }}/2000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="col-lg-4">
+      @if (isRepos) {
+        <div class="cm-card">
+          <div class="cm-form-section-title"><i class="bi bi-calendar-week"></i> Repos</div>
+          <div class="cm-form-group">
+            <label class="cm-form-label">Nombre de jours</label>
+            <input type="number" class="cm-input w-100" [(ngModel)]="joursRepos"
+                   placeholder="ex: 5" min="1" max="180" />
+            <div class="cm-form-hint">Entre 1 et 180 jours</div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="cm-form-actions">
+    <button class="cm-btn-secondary" (click)="cancel()">Annuler</button>
+    <button class="cm-btn-primary" (click)="save()" [disabled]="!canSave || saving()">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm"></span>
+      }
+      {{ isEdit() ? 'Enregistrer' : 'Créer le certificat' }}
+    </button>
+  </div>
+}

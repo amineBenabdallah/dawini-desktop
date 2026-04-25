@@ -1,0 +1,81 @@
+@if (loading()) {
+  <div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+} @else if (error()) {
+  <div class="text-center p-5 text-danger">{{ error() }}</div>
+} @else if (data(); as d) {
+  <div class="print-page">
+    <!-- Header -->
+    <div class="print-header">
+      <div>
+        <div class="fw-bold fs-5">Cabinet Médical</div>
+        <div class="small text-muted">Dr {{ d.docteur.firstName }} {{ d.docteur.lastName }}</div>
+        @if (d.docteur.specialite) { <div class="small text-muted">{{ d.docteur.specialite }}</div> }
+      </div>
+      <div class="text-end">
+        <div class="fw-bold text-primary" style="font-size:14pt">FACTURE</div>
+        <div class="small">N° <strong>{{ d.numero }}</strong></div>
+        <div class="small text-muted">{{ formatDate(d.createdAt) }}</div>
+        <div class="mt-1">
+          <span class="badge" [class.bg-success]="d.statut === 'PAID'" [class.bg-danger]="d.statut === 'UNPAID'" [class.bg-warning]="d.statut === 'PARTIAL'">
+            {{ statutLabels[d.statut] ?? d.statut }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- Patient -->
+    <div class="mb-3">
+      <span class="text-muted small">Patient : </span>
+      <span class="fw-medium">{{ d.patient.firstName }} {{ d.patient.lastName }}</span>
+    </div>
+
+    <!-- Totals -->
+    <table class="table table-bordered table-sm mb-3">
+      <tbody>
+        <tr><td class="text-muted">Montant total</td><td class="text-end fw-medium">{{ formatAmount(d.montantTotal) }}</td></tr>
+        <tr><td class="text-muted">Montant payé</td><td class="text-end text-success">{{ formatAmount(d.montantPaye) }}</td></tr>
+        <tr class="fw-semibold" [class.table-danger]="d.solde > 0">
+          <td>Solde restant</td>
+          <td class="text-end">{{ formatAmount(d.solde) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Payments -->
+    @if ((d.paiements?.length ?? 0) > 0) {
+      <h6 class="fw-semibold small mb-2">Détail des paiements</h6>
+      <table class="table table-sm mb-3">
+        <thead><tr><th class="text-muted small">Date</th><th class="text-muted small">Méthode</th><th class="text-muted small text-end">Montant</th></tr></thead>
+        <tbody>
+          @for (p of d.paiements; track $index) {
+            <tr>
+              <td class="small">{{ formatDate(p.datePaiement) }}</td>
+              <td class="small">{{ methodeLabels[p.methode] ?? p.methode }}</td>
+              <td class="small text-end text-success">{{ formatAmount(p.montant) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (d.notes) {
+      <div class="small text-muted border-top pt-2">{{ d.notes }}</div>
+    }
+
+    <div class="print-footer">
+      <div class="text-muted" style="font-size:9pt">Imprimé le {{ formatDate(d.printedAt) }}</div>
+    </div>
+  </div>
+}
+
+<style>
+  html, body { background: #fff !important; color: #212529 !important; }
+  .print-page { padding: 2cm; font-family: 'Segoe UI', sans-serif; max-width: 21cm; margin: auto; background: #fff; color: #212529; }
+  .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+  .print-footer { margin-top: 3rem; text-align: center; }
+  @media print { @page { size: A4; margin: 1.5cm; } }
+</style>

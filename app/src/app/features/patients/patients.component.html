@@ -1,0 +1,293 @@
+<app-page-header title="Patients" [subtitle]="total() + ' patient(s) enregistré(s)'" actionLabel="Nouveau patient" (action)="openModal()" />
+
+<!-- Search -->
+<div class="mb-3">
+  <div class="input-group patient-search">
+    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+    <input class="form-control border-start-0 ps-0" placeholder="Rechercher par nom, prénom…" [(ngModel)]="search" (ngModelChange)="onSearch()" />
+  </div>
+</div>
+
+<div class="cm-card">
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else {
+
+    <!-- ── Desktop table (md+) ─────────────────────────────────────────── -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Nom</th><th>Prénom</th><th>Âge</th><th>Sexe</th><th>Téléphone</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of patients(); track p.id) {
+            <tr>
+              <td class="fw-medium">{{ p.lastName }}</td>
+              <td>{{ p.firstName }}</td>
+              <td>{{ age(p.dateOfBirth) }}</td>
+              <td>{{ p.gender === 'M' ? 'Masculin' : p.gender === 'F' ? 'Féminin' : '—' }}</td>
+              <td>{{ p.phone ?? '—' }}</td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary" (click)="viewPatient(p.id)">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="text-center text-muted py-5">
+              <i class="bi bi-people fs-2 d-block mb-2 opacity-25"></i> Aucun patient trouvé
+            </td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Mobile card list (xs/sm) ───────────────────────────────────── -->
+    <ul class="list-unstyled mb-0 d-md-none">
+      @for (p of patients(); track p.id) {
+        <li class="patient-card" (click)="viewPatient(p.id)">
+          <div class="patient-card__avatar">{{ (p.firstName[0] ?? '') + (p.lastName[0] ?? '') | uppercase }}</div>
+          <div class="patient-card__body">
+            <div class="patient-card__name">{{ p.firstName }} {{ p.lastName }}</div>
+            <div class="patient-card__meta">
+              <span>{{ age(p.dateOfBirth) }}</span>
+              @if (p.phone) { <span>· {{ p.phone }}</span> }
+              <span>· {{ p.gender === 'M' ? 'M' : p.gender === 'F' ? 'F' : '—' }}</span>
+            </div>
+          </div>
+          <i class="bi bi-chevron-right patient-card__arrow"></i>
+        </li>
+      } @empty {
+        <li class="text-center text-muted py-5">
+          <i class="bi bi-people fs-2 d-block mb-2 opacity-25"></i>Aucun patient trouvé
+        </li>
+      }
+    </ul>
+
+    @if (totalPages() > 1) {
+      <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top flex-wrap gap-2">
+        <span class="text-muted small">{{ total() }} patient(s)</span>
+        <nav><ul class="pagination pagination-sm mb-0 gap-1">
+          <li class="page-item" [class.disabled]="page() <= 1"><button class="page-link rounded" (click)="setPage(page()-1)">‹</button></li>
+          @for (p of pages(); track p) {
+            <li class="page-item" [class.active]="p === page()"><button class="page-link rounded" (click)="setPage(p)">{{ p }}</button></li>
+          }
+          <li class="page-item" [class.disabled]="page() >= totalPages()"><button class="page-link rounded" (click)="setPage(page()+1)">›</button></li>
+        </ul></nav>
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Nouveau patient modal ───────────────────────────────────── -->
+@if (showModal()) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.45)" (click)="closeModal()">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-semibold">Nouveau patient</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <!-- Required fields -->
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="field-label">Prénom <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="form.firstName" maxlength="100" />
+            </div>
+            <div class="col-6">
+              <label class="field-label">Nom <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="form.lastName" maxlength="100" />
+            </div>
+            <div class="col-6">
+              <label class="field-label">Téléphone <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control form-control-sm" [(ngModel)]="form.phone" maxlength="20" />
+            </div>
+            <div class="col-6">
+              <label class="field-label">Date de naissance <span class="text-danger">*</span></label>
+              <input type="date" class="form-control form-control-sm" [(ngModel)]="form.dateOfBirth"
+                     [max]="today" />
+            </div>
+            <div class="col-12">
+              <label class="field-label">Sexe <span class="text-danger">*</span></label>
+              <div class="btn-group">
+                <button type="button" class="btn btn-sm"
+                        [class.btn-primary]="form.gender === 'M'"
+                        [class.btn-outline-secondary]="form.gender !== 'M'"
+                        (click)="form.gender = 'M'">Masculin</button>
+                <button type="button" class="btn btn-sm"
+                        [class.btn-primary]="form.gender === 'F'"
+                        [class.btn-outline-secondary]="form.gender !== 'F'"
+                        (click)="form.gender = 'F'">Féminin</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Optional fields toggle -->
+          @if (!showOptional()) {
+            <button type="button" class="btn btn-link btn-sm text-muted p-0" style="font-size:.8rem"
+                    (click)="showOptional.set(true)">
+              <i class="bi bi-plus-circle me-1"></i>Infos supplémentaires (email, wilaya…)
+            </button>
+          } @else {
+            <div class="row g-2 mt-1">
+              <div class="col-6">
+                <label class="field-label">Email</label>
+                <input type="email" class="form-control form-control-sm" [(ngModel)]="form.email" />
+              </div>
+              <div class="col-6">
+                <label class="field-label">NSS</label>
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="form.nss" maxlength="20" />
+              </div>
+              <div class="col-6">
+                <label class="field-label">Wilaya</label>
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="form.wilaya" maxlength="100" />
+              </div>
+              <div class="col-6">
+                <label class="field-label">Commune</label>
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="form.commune" maxlength="100" />
+              </div>
+            </div>
+          }
+
+        </div>
+
+        <div class="modal-footer border-0 pt-0">
+          <button class="btn btn-outline-secondary btn-sm" (click)="closeModal()" [disabled]="saving()">Annuler</button>
+          <button class="btn btn-primary btn-sm px-4" (click)="save()" [disabled]="!canSave || saving()">
+            @if (saving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            Enregistrer
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Patient detail modal ─────────────────────────────────── -->
+@if (showDetailModal()) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.45)" (click)="closeDetailModal()">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-semibold">Dossier patient</h5>
+          <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
+        </div>
+        <div class="modal-body">
+          @if (detailLoading()) {
+            <div class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></div>
+          } @else if (selectedPatient(); as p) {
+            <div class="row g-3">
+              <div class="col-6">
+                <span class="field-label">Nom</span>
+                <div class="fw-medium">{{ p.lastName }}</div>
+              </div>
+              <div class="col-6">
+                <span class="field-label">Prénom</span>
+                <div class="fw-medium">{{ p.firstName }}</div>
+              </div>
+              <div class="col-6">
+                <span class="field-label">Date de naissance</span>
+                <div>{{ p.dateOfBirth ?? '—' }} <span class="text-muted small">({{ age(p.dateOfBirth) }})</span></div>
+              </div>
+              <div class="col-6">
+                <span class="field-label">Sexe</span>
+                <div>{{ p.gender === 'M' ? 'Masculin' : p.gender === 'F' ? 'Féminin' : '—' }}</div>
+              </div>
+              <div class="col-6">
+                <span class="field-label">Téléphone</span>
+                <div>{{ p.phone ?? '—' }}</div>
+              </div>
+              <div class="col-6">
+                <span class="field-label">N° patient</span>
+                <div class="text-primary fw-medium">{{ p.patientNumber ?? '—' }}</div>
+              </div>
+              @if (p.email) {
+                <div class="col-6">
+                  <span class="field-label">Email</span>
+                  <div>{{ p.email }}</div>
+                </div>
+              }
+              @if (p.nss) {
+                <div class="col-6">
+                  <span class="field-label">NSS</span>
+                  <div>{{ p.nss }}</div>
+                </div>
+              }
+              @if (p.wilaya) {
+                <div class="col-6">
+                  <span class="field-label">Wilaya</span>
+                  <div>{{ p.wilaya }}</div>
+                </div>
+              }
+              @if (p.commune) {
+                <div class="col-6">
+                  <span class="field-label">Commune</span>
+                  <div>{{ p.commune }}</div>
+                </div>
+              }
+              @if (p.emergencyContactName) {
+                <div class="col-12 border-top pt-2 mt-1">
+                  <span class="field-label">Contact d'urgence</span>
+                  <div>{{ p.emergencyContactName }} {{ p.emergencyContactPhone ? '— ' + p.emergencyContactPhone : '' }}</div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button class="btn btn-outline-secondary btn-sm" (click)="closeDetailModal()">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<style>
+  .field-label {
+    display: block;
+    font-size: .65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #64748b;
+    margin-bottom: .35rem;
+  }
+
+  /* Search bar: constrained on desktop, full-width on mobile */
+  .patient-search { max-width: 380px; }
+  @media (max-width: 575.98px) { .patient-search { max-width: 100%; } }
+
+  /* ── Mobile patient card ──────────────────────────────────────────── */
+  .patient-card {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background .12s;
+    min-height: 56px;
+  }
+  .patient-card:last-child { border-bottom: none; }
+  .patient-card:hover, .patient-card:active { background: #f8fafc; }
+
+  .patient-card__avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: #dbeafe; color: #1d4ed8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 800; letter-spacing: -.01em;
+  }
+
+  .patient-card__body { flex: 1 1 0; min-width: 0; }
+  .patient-card__name { font-size: .88rem; font-weight: 600; color: #0f172a; }
+  .patient-card__meta { font-size: .75rem; color: #64748b; margin-top: .1rem; }
+
+  .patient-card__arrow { color: #cbd5e1; font-size: .82rem; flex-shrink: 0; }
+</style>

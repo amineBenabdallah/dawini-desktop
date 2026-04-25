@@ -1,0 +1,50 @@
+[
+  {
+    "title": "Bonjour",
+    "startTimeMs": 0,
+    "startTimeSec": 0,
+    "startTimeFormatted": "0:00"
+  },
+  {
+    "title": "Amira",
+    "startTimeMs": 14351,
+    "startTimeSec": 14,
+    "startTimeFormatted": "0:14"
+  },
+  {
+    "title": "Patient",
+    "startTimeMs": 46866,
+    "startTimeSec": 47,
+    "startTimeFormatted": "0:46"
+  },
+  {
+    "title": "Consultation",
+    "startTimeMs": 59929,
+    "startTimeSec": 60,
+    "startTimeFormatted": "0:59"
+  },
+  {
+    "title": "Ordonnance",
+    "startTimeMs": 73542,
+    "startTimeSec": 74,
+    "startTimeFormatted": "1:13"
+  },
+  {
+    "title": "File attente",
+    "startTimeMs": 82280,
+    "startTimeSec": 82,
+    "startTimeFormatted": "1:22"
+  },
+  {
+    "title": "Autres pages",
+    "startTimeMs": 119206,
+    "startTimeSec": 119,
+    "startTimeFormatted": "1:59"
+  },
+  {
+    "title": "Fin de journee",
+    "startTimeMs": 136544,
+    "startTimeSec": 137,
+    "startTimeFormatted": "2:16"
+  }
+]

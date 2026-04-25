@@ -1,0 +1,206 @@
+<app-page-header
+  title="Certificats médicaux"
+  [subtitle]="total() + ' certificat(s)'"
+  [actionLabel]="canCreate() ? 'Nouveau certificat' : ''"
+  (action)="createNew()"
+/>
+
+<!-- Filters -->
+<div class="cm-card mb-3">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <span class="d-flex align-items-center gap-1 text-muted small">
+      <i class="bi bi-funnel"></i> Filtres
+    </span>
+    @if (filterType || filterDateFrom || filterDateTo) {
+      <button class="btn btn-sm btn-link text-muted" (click)="resetFilters()">Réinitialiser</button>
+    }
+  </div>
+  <div class="row g-2 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label small text-muted mb-1">Type</label>
+      <select class="form-select form-select-sm" [(ngModel)]="filterType" (change)="applyFilter()">
+        <option value="">Tous</option>
+        <option value="REPOS">Repos médical</option>
+        <option value="APTITUDE">Aptitude</option>
+        <option value="INAPTITUDE">Inaptitude</option>
+        <option value="SCOLAIRE">Scolaire</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small text-muted mb-1">Date début</label>
+      <input type="date" class="form-control form-control-sm" [(ngModel)]="filterDateFrom" (change)="applyFilter()" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small text-muted mb-1">Date fin</label>
+      <input type="date" class="form-control form-control-sm" [(ngModel)]="filterDateTo" (change)="applyFilter()" />
+    </div>
+  </div>
+</div>
+
+<div class="cm-card">
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else {
+
+    <!-- Desktop table (md+) -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Patient</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of certificats(); track c.id) {
+            <tr class="cursor-pointer" (click)="viewDetail(c.id)">
+              <td class="fw-medium text-primary small">{{ c.numero }}</td>
+              <td><span class="badge rounded-pill" [class]="typeBadgeClass(c.type)" style="font-size:.75rem">{{ typeLabels[c.type] ?? c.type }}</span></td>
+              <td class="text-muted small">{{ formatDate(c.dateEmission || c.createdAt) }}</td>
+              <td>{{ c.patient?.firstName }} {{ c.patient?.lastName }}</td>
+              <td><app-status-badge [status]="c.statut" /></td>
+              <td class="text-end d-flex gap-2 justify-content-end">
+                <button class="btn btn-sm btn-outline-primary" title="Voir" (click)="viewDetail(c.id); $event.stopPropagation()">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" title="Imprimer" (click)="printCertificat(c.id, $event)">
+                  <i class="bi bi-printer"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center text-muted py-5">
+                <i class="bi bi-patch-check fs-2 d-block mb-2 opacity-25"></i>
+                Aucun certificat
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile card list (xs/sm) -->
+    <ul class="list-unstyled mb-0 d-md-none">
+      @for (c of certificats(); track c.id) {
+        <li class="list-card" (click)="viewDetail(c.id)">
+          <div class="list-card__body">
+            <div class="list-card__title">{{ c.patient?.firstName }} {{ c.patient?.lastName }}</div>
+            <div class="list-card__sub">
+              <span class="badge rounded-pill me-1" [class]="typeBadgeClass(c.type)" style="font-size:.7rem">{{ typeLabels[c.type] ?? c.type }}</span>
+              {{ c.numero }} · {{ formatDate(c.dateEmission || c.createdAt) }}
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <app-status-badge [status]="c.statut" />
+            <button class="btn btn-sm btn-outline-secondary p-1" (click)="printCertificat(c.id, $event); $event.stopPropagation()">
+              <i class="bi bi-printer"></i>
+            </button>
+            <i class="bi bi-chevron-right list-card__arrow"></i>
+          </div>
+        </li>
+      } @empty {
+        <li class="text-center text-muted py-5">
+          <i class="bi bi-patch-check fs-2 d-block mb-2 opacity-25"></i>Aucun certificat
+        </li>
+      }
+    </ul>
+
+    @if (totalPages() > 1) {
+      <nav class="d-flex justify-content-center mt-3 px-3 pb-2">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item" [class.disabled]="page() === 1">
+            <button class="page-link" (click)="setPage(page() - 1)">&laquo;</button>
+          </li>
+          @for (p of pages(); track p) {
+            <li class="page-item" [class.active]="p === page()">
+              <button class="page-link" (click)="setPage(p)">{{ p }}</button>
+            </li>
+          }
+          <li class="page-item" [class.disabled]="page() === totalPages()">
+            <button class="page-link" (click)="setPage(page() + 1)">&raquo;</button>
+          </li>
+        </ul>
+      </nav>
+    }
+  }
+</div>
+
+<style>
+  .list-card {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .75rem 1rem; border-bottom: 1px solid #f1f5f9;
+    cursor: pointer; transition: background .12s; min-height: 56px;
+  }
+  .list-card:last-child { border-bottom: none; }
+  .list-card:hover, .list-card:active { background: #f8fafc; }
+  .list-card__body { flex: 1 1 0; min-width: 0; }
+  .list-card__title { font-size: .88rem; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-card__sub { font-size: .75rem; color: #64748b; margin-top: .1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-card__arrow { color: #cbd5e1; font-size: .82rem; flex-shrink: 0; }
+</style>
+
+<!-- ── Certificat detail modal ─────────────────────────────── -->
+@if (showDetailModal()) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.45)" (click)="closeDetailModal()">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          @if (selectedCert(); as c) {
+            <div>
+              <h5 class="modal-title fw-semibold mb-0">{{ c.numero }}</h5>
+              <span class="text-muted small">{{ formatDate(c.dateEmission || c.createdAt) }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge rounded-pill" [class]="typeBadgeClass(c.type)" style="font-size:.75rem">{{ typeLabels[c.type] ?? c.type }}</span>
+              <app-status-badge [status]="c.statut" />
+              <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
+            </div>
+          } @else {
+            <h5 class="modal-title">Certificat</h5>
+            <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
+          }
+        </div>
+        <div class="modal-body">
+          @if (detailLoading()) {
+            <div class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></div>
+          } @else if (selectedCert(); as c) {
+            <div class="mb-3">
+              <span class="text-muted small">Patient</span>
+              <div class="fw-semibold">{{ c.patient?.firstName }} {{ c.patient?.lastName }}</div>
+            </div>
+
+            @if (c.type === 'REPOS' && c.joursRepos) {
+              <div class="mb-3">
+                <span class="text-muted small">Jours de repos</span>
+                <div class="fw-medium">{{ c.joursRepos }} jour(s)</div>
+              </div>
+            }
+
+            <div>
+              <span class="text-muted small fw-medium">Contenu du certificat</span>
+              <div class="mt-2 p-3 bg-light rounded" style="white-space: pre-wrap; line-height: 1.8;">{{ c.contenu }}</div>
+            </div>
+          }
+        </div>
+        @if (selectedCert(); as c) {
+          <div class="modal-footer">
+            @if (canCreate()) {
+              <button class="btn btn-sm btn-outline-primary" (click)="goEdit(c.id); closeDetailModal()">
+                <i class="bi bi-pencil me-1"></i>Modifier
+              </button>
+            }
+            <button class="btn btn-sm btn-outline-secondary" (click)="printCertificat(c.id, $event)">
+              <i class="bi bi-printer me-1"></i>Imprimer
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="closeDetailModal()">Fermer</button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

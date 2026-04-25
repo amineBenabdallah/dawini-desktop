@@ -1,0 +1,171 @@
+<app-page-header title="Facturation" [subtitle]="total() + ' facture(s)'" />
+
+<div class="cm-card">
+  @if (loading()) { <app-loading-spinner /> }
+  @else {
+
+    <!-- Desktop table (md+) -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>N°</th><th>Date</th><th>Patient</th><th class="text-end">Total</th><th class="text-end">Payé</th><th class="text-end">Solde</th><th>Statut</th><th></th></tr></thead>
+        <tbody>
+          @for (f of factures(); track f.id) {
+            <tr>
+              <td class="fw-medium text-primary small">{{ f.numero }}</td>
+              <td class="text-muted small">{{ formatDate(f.createdAt) }}</td>
+              <td>{{ f.patient?.firstName }} {{ f.patient?.lastName }}</td>
+              <td class="text-end fw-medium">{{ formatAmount(f.montantTotal) }}</td>
+              <td class="text-end text-success">{{ formatAmount(f.montantPaye) }}</td>
+              <td class="text-end" [class.text-danger]="solde(f) > 0">{{ formatAmount(solde(f)) }}</td>
+              <td><app-status-badge [status]="f.statut" /></td>
+              <td class="text-end d-flex gap-2 justify-content-end">
+                <button class="btn btn-sm btn-outline-primary" title="Voir" (click)="viewDetail(f.id)">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" title="Imprimer" (click)="printFacture(f.id)">
+                  <i class="bi bi-printer"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="8" class="text-center text-muted py-5">
+              <i class="bi bi-receipt fs-2 d-block mb-2 opacity-25"></i> Aucune facture
+            </td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile card list (xs/sm) -->
+    <ul class="list-unstyled mb-0 d-md-none">
+      @for (f of factures(); track f.id) {
+        <li class="list-card" (click)="viewDetail(f.id)">
+          <div class="list-card__body">
+            <div class="list-card__title">{{ f.patient?.firstName }} {{ f.patient?.lastName }}</div>
+            <div class="list-card__sub">{{ f.numero }} · {{ formatDate(f.createdAt) }}</div>
+          </div>
+          <div class="d-flex flex-column align-items-end gap-1">
+            <app-status-badge [status]="f.statut" />
+            <span class="list-card__amount" [class.text-danger]="solde(f) > 0" [class.text-success]="solde(f) === 0">
+              {{ formatAmount(f.montantTotal) }}
+              @if (solde(f) > 0) { <span class="text-muted"> · solde {{ formatAmount(solde(f)) }}</span> }
+            </span>
+          </div>
+        </li>
+      } @empty {
+        <li class="text-center text-muted py-5">
+          <i class="bi bi-receipt fs-2 d-block mb-2 opacity-25"></i> Aucune facture
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<style>
+  .list-card {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .75rem 1rem; border-bottom: 1px solid #f1f5f9;
+    cursor: pointer; transition: background .12s; min-height: 56px;
+  }
+  .list-card:last-child { border-bottom: none; }
+  .list-card:hover, .list-card:active { background: #f8fafc; }
+  .list-card__body { flex: 1 1 0; min-width: 0; }
+  .list-card__title { font-size: .88rem; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-card__sub { font-size: .75rem; color: #64748b; margin-top: .1rem; }
+  .list-card__amount { font-size: .78rem; font-weight: 700; }
+</style>
+
+<!-- ── Facture detail modal ──────────────────────────────────── -->
+@if (showDetailModal()) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.45)" (click)="closeDetailModal()">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          @if (selectedFacture(); as f) {
+            <div>
+              <h5 class="modal-title fw-semibold mb-0">{{ f.numero }}</h5>
+              <span class="text-muted small">{{ formatDate(f.createdAt) }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <app-status-badge [status]="f.statut" />
+              <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
+            </div>
+          } @else {
+            <h5 class="modal-title">Facture</h5>
+            <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
+          }
+        </div>
+        <div class="modal-body">
+          @if (detailLoading()) {
+            <div class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></div>
+          } @else if (selectedFacture(); as f) {
+            <!-- Patient -->
+            <div class="mb-3">
+              <span class="text-muted small">Patient</span>
+              <div class="fw-semibold">{{ f.patient?.firstName }} {{ f.patient?.lastName }}</div>
+            </div>
+
+            <!-- Amounts -->
+            <div class="row g-3 mb-4">
+              <div class="col-4">
+                <div class="p-3 bg-light rounded text-center">
+                  <div class="text-muted small">Total</div>
+                  <div class="fw-bold fs-5">{{ formatAmount(f.montantTotal) }}</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-3 bg-light rounded text-center">
+                  <div class="text-muted small">Payé</div>
+                  <div class="fw-bold fs-5 text-success">{{ formatAmount(f.montantPaye) }}</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-3 rounded text-center" [class.bg-danger]="f.solde > 0" [class.bg-opacity-10]="f.solde > 0" [class.bg-light]="f.solde <= 0">
+                  <div class="text-muted small">Solde</div>
+                  <div class="fw-bold fs-5" [class.text-danger]="f.solde > 0">{{ formatAmount(f.solde) }}</div>
+                </div>
+              </div>
+            </div>
+
+            @if (f.notes) {
+              <div class="mb-3">
+                <span class="text-muted small">Notes</span>
+                <div class="small">{{ f.notes }}</div>
+              </div>
+            }
+
+            <!-- Payments -->
+            <h6 class="fw-semibold mb-2"><i class="bi bi-cash-stack me-1"></i>Paiements ({{ (f.paiements?.length ?? 0) }})</h6>
+            @if ((f.paiements?.length ?? 0) > 0) {
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead><tr><th>Date</th><th>Montant</th><th>Méthode</th><th>Note</th></tr></thead>
+                  <tbody>
+                    @for (p of f.paiements; track p.id) {
+                      <tr>
+                        <td class="text-muted small">{{ formatDate(p.datePaiement) }}</td>
+                        <td class="fw-medium text-success">{{ formatAmount(p.montant) }}</td>
+                        <td><span class="badge text-bg-light border small">{{ methodLabels[p.methode] ?? p.methode }}</span></td>
+                        <td class="text-muted small">{{ p.note || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="text-muted small mb-0">Aucun paiement enregistré</p>
+            }
+          }
+        </div>
+        @if (selectedFacture(); as f) {
+          <div class="modal-footer">
+            <button class="btn btn-sm btn-outline-secondary" (click)="printFacture(f.id)">
+              <i class="bi bi-printer me-1"></i>Imprimer
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="closeDetailModal()">Fermer</button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

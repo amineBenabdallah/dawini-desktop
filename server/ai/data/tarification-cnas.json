@@ -1,0 +1,11 @@
+[
+  { "actCode": "C", "label": "Consultation médecin généraliste", "tarifCnas": 250, "lettreCle": "C" },
+  { "actCode": "CS", "label": "Consultation médecin spécialiste", "tarifCnas": 400, "lettreCle": "CS" },
+  { "actCode": "V", "label": "Visite à domicile", "tarifCnas": 350, "lettreCle": "V" },
+  { "actCode": "VS", "label": "Visite spécialiste à domicile", "tarifCnas": 500, "lettreCle": "VS" },
+  { "actCode": "CU", "label": "Consultation d'urgence", "tarifCnas": 500, "lettreCle": "CU" },
+  { "actCode": "ECG", "label": "Électrocardiogramme", "tarifCnas": 300, "lettreCle": "K" },
+  { "actCode": "INJ", "label": "Injection", "tarifCnas": 100, "lettreCle": "AMI" },
+  { "actCode": "PANS", "label": "Pansement simple", "tarifCnas": 150, "lettreCle": "AMI" },
+  { "actCode": "CERT", "label": "Certificat médical", "tarifCnas": 200, "lettreCle": "C" }
+]

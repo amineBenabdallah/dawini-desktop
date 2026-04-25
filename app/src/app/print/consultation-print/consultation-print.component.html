@@ -1,0 +1,110 @@
+@if (loading()) {
+  <div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+} @else if (error()) {
+  <div class="text-center p-5 text-danger">{{ error() }}</div>
+} @else if (data(); as c) {
+  <div class="print-page">
+
+    <!-- Header -->
+    <div class="print-header">
+      <div>
+        <div class="fw-bold fs-6">Consultation Médicale</div>
+        <div class="text-muted small">{{ formatDate(c.dateConsultation) }}</div>
+      </div>
+      <div class="text-end">
+        <span class="badge" [class]="c.statut === 'FINALIZED' ? 'text-bg-secondary' : 'text-bg-success'">
+          {{ c.statut === 'FINALIZED' ? 'Finalisée' : 'Ouverte' }}
+        </span>
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- Patient -->
+    <div class="mb-3">
+      <span class="text-muted small">Patient : </span>
+      <span class="fw-medium">{{ c.patient.firstName }} {{ c.patient.lastName }}</span>
+    </div>
+
+    <!-- Motif -->
+    <div class="print-section">
+      <div class="print-section-title">Motif de consultation</div>
+      <div>{{ c.motif }}</div>
+    </div>
+
+    <!-- Constantes -->
+    @if (c.tensionArterielle || c.poids != null || c.temperature != null) {
+      <div class="print-section">
+        <div class="print-section-title">Constantes</div>
+        <table class="table table-sm table-bordered mb-0" style="max-width: 350px;">
+          <tbody>
+            @if (c.tensionArterielle) {
+              <tr><td class="text-muted" style="width: 150px;">Tension artérielle</td><td>{{ c.tensionArterielle }}</td></tr>
+            }
+            @if (c.poids != null) {
+              <tr><td class="text-muted">Poids</td><td>{{ c.poids }} kg</td></tr>
+            }
+            @if (c.temperature != null) {
+              <tr><td class="text-muted">Température</td><td>{{ c.temperature }} °C</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Examen clinique -->
+    @if (c.examenClinique) {
+      <div class="print-section">
+        <div class="print-section-title">Examen clinique</div>
+        <div style="white-space: pre-wrap;">{{ c.examenClinique }}</div>
+      </div>
+    }
+
+    <!-- Diagnostic -->
+    @if (c.diagnostic) {
+      <div class="print-section">
+        <div class="print-section-title">Diagnostic</div>
+        <div style="white-space: pre-wrap;">{{ c.diagnostic }}</div>
+      </div>
+    }
+
+    <!-- Traitement -->
+    @if (c.traitement) {
+      <div class="print-section">
+        <div class="print-section-title">Traitement</div>
+        <div style="white-space: pre-wrap;">{{ c.traitement }}</div>
+      </div>
+    }
+
+    <!-- Notes -->
+    @if (c.notes) {
+      <div class="print-section">
+        <div class="print-section-title">Notes</div>
+        <div style="white-space: pre-wrap;">{{ c.notes }}</div>
+      </div>
+    }
+
+    <!-- Signature -->
+    <div class="print-signature">
+      <div class="text-muted small mb-1">Cachet et signature du médecin</div>
+      <div class="signature-box"></div>
+    </div>
+
+  </div>
+}
+
+<!-- Inline status label (no external dep for print) -->
+<ng-template #statusLabel><!-- rendered inline --></ng-template>
+
+<style>
+  html, body { background: #fff !important; color: #212529 !important; }
+  .print-page { padding: 2cm; font-family: 'Segoe UI', sans-serif; max-width: 21cm; margin: auto; font-size: 12pt; background: #fff; color: #212529; }
+  .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+  .print-section { margin-bottom: 1.5rem; }
+  .print-section-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; color: #495057; border-bottom: 1px solid #dee2e6; padding-bottom: 0.2rem; }
+  .print-signature { margin-top: 3rem; text-align: right; }
+  .signature-box { width: 120px; height: 80px; border: 1px solid #ccc; border-radius: 4px; display: inline-block; }
+  @media print { @page { size: A4; margin: 1.5cm; } }
+</style>

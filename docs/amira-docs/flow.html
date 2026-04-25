@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Amira — Data Flow</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root { --bg:#f8fafc;--surface:#fff;--text:#0f172a;--muted:#64748b;--primary:#2563eb;--accent:#7c3aed;--border:#e2e8f0;--radius:14px;--font:'Inter','Segoe UI',system-ui,sans-serif; }
+  *{box-sizing:border-box;margin:0}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);padding:0}
+  .hero{background:linear-gradient(135deg,#059669 0%,#0ea5e9 100%);color:white;padding:48px 40px;text-align:center}
+  .hero h1{font-size:32px;font-weight:800;margin-bottom:8px}
+  .hero p{font-size:16px;opacity:.85}
+  .hero .badge{display:inline-block;background:rgba(255,255,255,.15);padding:4px 14px;border-radius:20px;font-size:12px;margin-top:12px}
+  .container{max-width:1100px;margin:0 auto;padding:40px 24px}
+  h2{font-size:22px;font-weight:700;margin:40px 0 16px;display:flex;align-items:center;gap:10px}
+  h2 .icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  h3{font-size:16px;font-weight:600;margin:24px 0 12px}
+  p,li{font-size:14px;line-height:1.7;color:var(--muted)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .mermaid{margin:20px 0}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:768px){.grid-2{grid-template-columns:1fr}}
+  .tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+  .tag-blue{background:#eff6ff;color:#2563eb}
+  .tag-green{background:#ecfdf5;color:#059669}
+  .tag-purple{background:#f5f3ff;color:#7c3aed}
+  .tag-amber{background:#fffbeb;color:#b45309}
+  code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px}
+  .divider{height:1px;background:var(--border);margin:40px 0}
+  .callout{border-left:3px solid var(--primary);padding:12px 16px;margin:16px 0;background:#f8fafc;border-radius:0 8px 8px 0}
+  .callout strong{color:var(--text)}
+  nav{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 24px;z-index:100;display:flex;gap:20px;align-items:center}
+  nav a{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 0;border-bottom:2px solid transparent}
+  nav a:hover{color:var(--text)}
+  nav a.active{color:var(--primary);border-bottom-color:var(--primary)}
+  nav .logo{font-weight:700;color:var(--text);font-size:14px;margin-right:16px}
+  .step{display:flex;gap:16px;margin:12px 0;align-items:flex-start}
+  .step-num{width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+  .step-content{flex:1}
+  .step-content strong{color:var(--text);font-size:14px}
+  .step-content p{margin-top:4px}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">Dr. Amira Docs</span>
+  <a href="architecture.html">Architecture</a>
+  <a href="flow.html" class="active">Data Flow</a>
+  <a href="decisions.html">Decisions</a>
+  <a href="ui-interactions.html">UI Interactions</a>
+</nav>
+
+<div class="hero">
+  <h1>Data Flow</h1>
+  <p>How every query flows through the 3-layer system</p>
+  <div class="badge">Waterfall: L1 + L2 search &rarr; LLM speaks from results only</div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#eff6ff;color:#2563eb">1</span> Master Flow — Every Query</h2>
+
+<div class="mermaid">
+flowchart TD
+    A["Doctor action<br/><i>types, clicks, or asks</i>"] --> B["ContextService<br/>Gather screen-specific context from DB<br/><i>(only relevant data — see context table)</i>"]
+    B --> C{"Which screen?"}
+
+    C -->|Consultation| S1["Search L1: protocols, guidelines<br/>Search L2: CIM-10, lab normals"]
+    C -->|Ordonnance| S2["Search L1: drug references<br/>Search L2: WHO drugs, interactions"]
+    C -->|Certificat| S3["Search L1: certificate templates<br/>Search L2: deontologie, laws"]
+    C -->|Facturation| S4["Search L2 only: tarification CNAS"]
+    C -->|Queue| S5["Search L2 only: triage rules"]
+    C -->|Patient file| S6["Search L1: treatment history<br/>Search L2: vaccination, lab normals"]
+    C -->|Free chat| S7["Search L1: all doctor PDFs<br/>Search L2: all pre-bundled data"]
+
+    S1 --> MERGE["Merge found references"]
+    S2 --> MERGE
+    S3 --> MERGE
+    S4 --> MERGE
+    S5 --> MERGE
+    S6 --> MERGE
+    S7 --> MERGE
+
+    MERGE --> PROMPT["Build LLM Prompt:<br/>System: personality + 'ONLY use refs'<br/>Context: patient data<br/>References: merged L1+L2<br/>Question: doctor's query"]
+
+    PROMPT --> LLM["Mistral Nemo 12B<br/>generates response"]
+
+    LLM --> D{References found?}
+    D -->|Yes| E["Answer with citations<br/><i>'D'apr&egrave;s votre Dorosz p.34...'</i>"]
+    D -->|No refs were provided| F["'Je n'ai pas cette info<br/>dans mes r&eacute;f&eacute;rences.'<br/>[Ouvrir la biblioth&egrave;que]"]
+
+    style A fill:#f8fafc,stroke:#94a3b8
+    style LLM fill:#f5f3ff,stroke:#7c3aed,color:#5b21b6
+    style E fill:#ecfdf5,stroke:#059669
+    style F fill:#fffbeb,stroke:#b45309
+</div>
+
+<div class="callout">
+  <strong>Key rule:</strong> The LLM prompt ALWAYS contains: <code>"Answer ONLY from the REFERENCES below. If not found, say so."</code>
+  Even if the LLM "knows" the answer from training, it's instructed to ignore its own knowledge and only use provided references.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#ecfdf5;color:#059669">2</span> Layer 1 Search Flow (Doctor's PDFs)</h2>
+
+<div class="mermaid">
+flowchart LR
+    Q["Doctor's question"] --> EMB["Embedding Model<br/><i>all-MiniLM-L6-v2</i><br/>question &rarr; 384-dim vector"]
+    EMB --> SEARCH["LanceDB — HNSW algorithm<br/>cosine similarity search<br/>top 5 most relevant chunks<br/><i>O(log n) ~5ms</i>"]
+    SEARCH --> CHUNKS["Retrieved chunks:<br/>text + source + page number"]
+
+    subgraph INDEXED["Previously indexed (one-time)"]
+        PDF["Doctor drops PDF"] --> PARSE["pdf-parse / mammoth<br/>extract text"]
+        PARSE --> CHUNK["Chunker<br/>500 tokens, 50 overlap"]
+        CHUNK --> EMBED["Embed each chunk<br/>&rarr; 384-dim vector"]
+        EMBED --> STORE["Store in LanceDB<br/>vector + text + source + page"]
+    end
+
+    style INDEXED fill:#eff6ff,stroke:#2563eb
+    style CHUNKS fill:#ecfdf5,stroke:#059669
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#fffbeb;color:#b45309">3</span> Layer 2 Search Flow (Pre-bundled Rules)</h2>
+
+<div class="mermaid">
+flowchart LR
+    Q2["Extracted keywords<br/>from doctor's query"] --> ROUTER{"Data type needed?<br/><i>In-memory JSON lookup</i><br/><i>&lt;1ms</i>"}
+
+    ROUTER -->|drug name| DRUGS["In-memory: drugs array<br/>DCI, category, route, notes"]
+    ROUTER -->|diagnostic| CIM["In-memory: cim10 array<br/>code + French label"]
+    ROUTER -->|lab value| LABS["In-memory: labNormals array<br/>test, min, max, unit, age, gender"]
+    ROUTER -->|vaccine| VAX["In-memory: vaccination array<br/>vaccine, age, dose, obligatory"]
+    ROUTER -->|billing| TARIF["In-memory: tarification array<br/>act code, label, CNAS tarif"]
+    ROUTER -->|triage| TRIAGE["In-memory: triageRules array<br/>keyword, severity, action"]
+    ROUTER -->|legal| LAWS["In-memory: lawTexts array<br/>substring search in laws"]
+
+    DRUGS --> FORMAT["Format as reference text"]
+    CIM --> FORMAT
+    LABS --> FORMAT
+    VAX --> FORMAT
+    TARIF --> FORMAT
+    TRIAGE --> FORMAT
+    LAWS --> FORMAT
+
+    style FORMAT fill:#ecfdf5,stroke:#059669
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#f5f3ff;color:#7c3aed">4</span> LLM Prompt Construction</h2>
+
+<div class="card">
+<pre style="font-size:13px;line-height:1.7;color:#334155;overflow-x:auto;white-space:pre-wrap">
+<strong style="color:#7c3aed">SYSTEM:</strong>
+Tu es Dr. Amira, consœur num&eacute;rique int&eacute;gr&eacute;e dans Dawini.
+Tu r&eacute;ponds UNIQUEMENT &agrave; partir des R&Eacute;F&Eacute;RENCES fournies ci-dessous.
+Si les r&eacute;f&eacute;rences ne contiennent pas la r&eacute;ponse, dis :
+"Je n'ai pas cette information dans mes r&eacute;f&eacute;rences."
+Ne devine pas. Ne compl&egrave;te pas de tes propres connaissances.
+Cite toujours le document source.
+Sois concise, professionnelle, et bienveillante.
+
+<strong style="color:#2563eb">CONTEXT (consultation screen &mdash; includes patient + vitals + motif):</strong>
+Patient: Ahmed Benali, 52 ans, homme
+Ant&eacute;c&eacute;dents: Diab&egrave;te type 2 (2019), HTA (2024)
+Traitement en cours: Metformine 1000mg x2/j, Amlodipine 5mg/j
+Derni&egrave;re consultation: 12/02/2026 — TA 15/9, HbA1c 8.2%
+Consultation en cours: TA 16/10, Poids 94kg, Motif: C&eacute;phal&eacute;es
+
+<strong style="color:#059669">REFERENCES (from Layer 1 + Layer 2):</strong>
+
+[L1 — Dorosz 2025, p.234]
+"Amlodipine: doses 5-10mg/j en une prise. En cas de TA non
+contr&ocirc;l&eacute;e sous 5mg, augmenter &agrave; 10mg avant d'ajouter un 2e AHT..."
+
+[L1 — Guide HTA MSPRH, p.18]
+"HTA grade 2 (TA 160-179/100-109): bith&eacute;rapie recommand&eacute;e.
+Association IEC + ICa ou IEC + diur&eacute;tique..."
+
+[L2 — lab_normals]
+TA normale adulte: &lt; 140/90 mmHg
+HbA1c cible diab&eacute;tique: &lt; 7%
+
+<strong style="color:#b45309">QUESTION:</strong>
+Que me sugg&egrave;res-tu pour ce patient avec TA 16/10 sous Amlodipine 5mg?
+</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#eff6ff;color:#2563eb">5</span> Per-Screen Search Configuration</h2>
+
+<div class="card">
+<table>
+  <thead>
+    <tr><th>Screen</th><th>Layer 1 Search</th><th>Layer 2 Search</th><th>Context Injected</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Consultation</strong><br/><span class="tag tag-purple">Full AI</span></td>
+      <td>Protocols, guidelines, drug refs matching symptoms + diagnostic</td>
+      <td>CIM-10 codes, lab normals, triage rules</td>
+      <td>Patient history, current vitals, current meds, motif</td>
+    </tr>
+    <tr>
+      <td><strong>Ordonnance</strong><br/><span class="tag tag-purple">Full AI</span></td>
+      <td>Drug monographs, posologies, interaction data from Dorosz/Vidal</td>
+      <td>WHO essential drugs, basic interactions</td>
+      <td>Patient age/weight/renal function, current meds, allergies</td>
+    </tr>
+    <tr>
+      <td><strong>Certificat</strong><br/><span class="tag tag-purple">Full AI</span></td>
+      <td>Certificate templates, doctor's custom models</td>
+      <td>Code d&eacute;ontologie, legal requirements</td>
+      <td>Current consultation diagnostic, patient name/age</td>
+    </tr>
+    <tr>
+      <td><strong>Facturation</strong><br/><span class="tag tag-blue">Light AI</span></td>
+      <td>—</td>
+      <td>Tarification CNAS, NGAP act codes</td>
+      <td>Consultation type, acts performed</td>
+    </tr>
+    <tr>
+      <td><strong>Patient file</strong><br/><span class="tag tag-purple">Full AI</span></td>
+      <td>Treatment protocols matching patient's conditions</td>
+      <td>Vaccination schedule, lab normals, screening by age</td>
+      <td>Full patient history, all past consultations + meds</td>
+    </tr>
+    <tr>
+      <td><strong>Queue triage</strong><br/><span class="tag tag-blue">Light AI</span></td>
+      <td>—</td>
+      <td>Triage severity rules</td>
+      <td>Patient motif (reason for visit)</td>
+    </tr>
+    <tr>
+      <td><strong>Dashboard</strong><br/><span class="tag tag-purple">Full AI</span></td>
+      <td>Follow-up protocols for due patients</td>
+      <td>All overdue follow-up rules</td>
+      <td>Today's appointments, pending follow-ups, stats</td>
+    </tr>
+    <tr>
+      <td><strong>Free chat</strong><br/><span class="tag tag-purple">Full AI</span></td>
+      <td>Search ALL indexed documents</td>
+      <td>Search ALL pre-bundled data</td>
+      <td>Current screen context (if any)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2><span class="icon" style="background:#ecfdf5;color:#059669">6</span> Streaming Response (SSE)</h2>
+
+<div class="mermaid">
+sequenceDiagram
+    participant D as Doctor (Angular)
+    participant API as AiController
+    participant SVC as AiService
+    participant RAG as RagService (L1)
+    participant RULES as RulesService (L2)
+    participant LLM as LlmService
+
+    D->>API: POST /ai/query (SSE)
+    API->>SVC: query(screen, question, context)
+
+    par Search L1 and L2 in parallel
+        SVC->>RAG: search(question)
+        RAG-->>SVC: chunks from doctor's PDFs
+        SVC->>RULES: lookup(keywords)
+        RULES-->>SVC: structured data rows
+    end
+
+    SVC->>SVC: merge references
+    SVC->>SVC: build prompt (system + context + refs + question)
+    SVC->>LLM: generate(prompt, streaming=true)
+
+    loop Token by token
+        LLM-->>SVC: token
+        SVC-->>API: SSE event
+        API-->>D: SSE event (renders progressively)
+    end
+
+    LLM-->>SVC: [END]
+    SVC-->>API: SSE close
+    API-->>D: SSE close
+</div>
+
+<div class="callout">
+  <strong>Why SSE streaming?</strong> The LLM takes 3-5 seconds for a full response. With streaming, the doctor sees the first words in ~200ms. Feels instant, even though the full answer takes seconds.
+</div>
+
+<div class="divider"></div>
+<p style="text-align:center;font-size:12px;color:var(--muted)">Dr. Amira Data Flow Document — Dawini Desktop — April 2026</p>
+
+</div>
+
+<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral', themeVariables: { fontSize: '12px' } });</script>
+</body>
+</html>

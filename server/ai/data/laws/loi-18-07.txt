@@ -1,0 +1,11 @@
+Loi n° 18-07 du 10 juin 2018 relative à la protection des personnes physiques dans le traitement des données à caractère personnel.
+
+Article 2: La présente loi a pour objet de fixer les règles générales relatives à la protection des personnes physiques dans le traitement des données à caractère personnel.
+
+Article 3: Les données à caractère personnel doivent être collectées pour des finalités déterminées, explicites et légitimes et ne pas être traitées ultérieurement de manière incompatible avec ces finalités.
+
+Article 7: Le traitement des données à caractère personnel est subordonné au consentement préalable de la personne concernée.
+
+Article 17: Les données relatives à la santé ne peuvent être collectées et traitées que par un professionnel de santé soumis au secret professionnel ou par une personne soumise à une obligation équivalente de secret.
+
+Article 45: Toute personne physique qui traite des données à caractère personnel est tenue de prendre toutes les mesures techniques et organisationnelles utiles pour préserver la sécurité des données.

@@ -1,0 +1,20 @@
+[
+  { "vaccine": "BCG", "doseNumber": 1, "ageMonths": 0, "obligatory": true },
+  { "vaccine": "VPO (Polio oral)", "doseNumber": 0, "ageMonths": 0, "obligatory": true },
+  { "vaccine": "HepB", "doseNumber": 1, "ageMonths": 0, "obligatory": true },
+  { "vaccine": "DTC-HepB-Hib (Pentavalent)", "doseNumber": 1, "ageMonths": 2, "obligatory": true },
+  { "vaccine": "VPO", "doseNumber": 1, "ageMonths": 2, "obligatory": true },
+  { "vaccine": "DTC-HepB-Hib (Pentavalent)", "doseNumber": 2, "ageMonths": 3, "obligatory": true },
+  { "vaccine": "VPO", "doseNumber": 2, "ageMonths": 3, "obligatory": true },
+  { "vaccine": "DTC-HepB-Hib (Pentavalent)", "doseNumber": 3, "ageMonths": 4, "obligatory": true },
+  { "vaccine": "VPO", "doseNumber": 3, "ageMonths": 4, "obligatory": true },
+  { "vaccine": "VPI (Polio injectable)", "doseNumber": 1, "ageMonths": 4, "obligatory": true },
+  { "vaccine": "Anti-rougeoleux", "doseNumber": 1, "ageMonths": 11, "obligatory": true },
+  { "vaccine": "ROR (Rougeole-Oreillons-Rubéole)", "doseNumber": 1, "ageMonths": 18, "obligatory": true },
+  { "vaccine": "DTC Rappel", "doseNumber": 4, "ageMonths": 18, "obligatory": true },
+  { "vaccine": "VPO Rappel", "doseNumber": 4, "ageMonths": 18, "obligatory": true },
+  { "vaccine": "DT Rappel", "doseNumber": 5, "ageMonths": 72, "obligatory": true },
+  { "vaccine": "VPO Rappel", "doseNumber": 5, "ageMonths": 72, "obligatory": true },
+  { "vaccine": "dT Rappel", "doseNumber": 6, "ageMonths": 132, "obligatory": true },
+  { "vaccine": "dT Rappel", "doseNumber": 7, "ageMonths": 204, "obligatory": true }
+]
