@@ -3,6 +3,7 @@ productName: Dawini
 copyright: Copyright © 2026 Dawini
 
 directories:
+  app: "."
   output: release
   buildResources: resources
 
