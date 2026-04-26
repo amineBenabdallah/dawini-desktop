@@ -61,6 +61,19 @@ export class UpdateBannerComponent {
       this.downloaded.set(true);
       this.updateVersion.set(info.version);
     });
+
+    // Trigger a fresh check now that the renderer is mounted and listening.
+    // The startup check in initAutoUpdater() may have fired before this
+    // component subscribed, so its update-available event would have been
+    // lost. Re-checking from here guarantees we receive it.
+    if (this.platform.isDesktop) {
+      setTimeout(() => {
+        const api = (window as any).electronAPI;
+        if (api?.checkForUpdates) {
+          api.checkForUpdates().catch(() => {});
+        }
+      }, 1500);
+    }
   }
 
   install(): void {

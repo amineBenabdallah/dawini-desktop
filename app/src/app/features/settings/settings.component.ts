@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { PlatformService } from '../../core/services/platform.service';
 import { AmiraService } from '../../core/services/amira.service';
+import { ToastService } from '../../core/services/toast.service';
 import { AmiraLibraryComponent } from '../amira/amira-library.component';
 
 interface ConsultationType { label: string; fee: number; }
@@ -32,6 +33,7 @@ export class SettingsComponent implements OnInit {
   private readonly api      = inject(ApiService);
   private readonly platform = inject(PlatformService);
   private readonly amiraSvc = inject(AmiraService);
+  private readonly toast    = inject(ToastService);
 
   // Amira status
   readonly amiraLoaded = signal(false);
@@ -142,6 +144,18 @@ export class SettingsComponent implements OnInit {
   }
 
   checkForUpdates() {
-    this.platform.installUpdate();
+    const api = (window as any).electronAPI;
+    if (api?.checkForUpdates) {
+      this.toast.info('Recherche de mise à jour...');
+      api.checkForUpdates()
+        .then((version: string | null) => {
+          if (version) {
+            this.toast.success(`Mise à jour v${version} disponible. Voir la bannière en haut.`);
+          } else {
+            this.toast.info('Vous utilisez la dernière version.');
+          }
+        })
+        .catch(() => this.toast.error('Impossible de vérifier les mises à jour.'));
+    }
   }
 }
