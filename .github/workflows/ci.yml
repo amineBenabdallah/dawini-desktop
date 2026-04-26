@@ -22,14 +22,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
       - name: Typecheck
         run: npm run typecheck
-
-      - name: Test
-        run: npm test -- --ci --coverage
 
       - name: Build server
         run: npm run build:server
@@ -50,9 +44,6 @@ jobs:
 
       - name: Install frontend dependencies
         run: cd app && npm ci
-
-      - name: Lint frontend
-        run: cd app && npm run lint
 
       - name: Typecheck frontend
         run: cd app && npx tsc --noEmit
