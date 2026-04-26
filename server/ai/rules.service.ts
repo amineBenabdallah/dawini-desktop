@@ -23,6 +23,8 @@ interface VaccineDz { vaccine: string; doseNumber: number; ageMonths: number; ob
 interface TriageRule { keyword: string; severity: string; action: string; description: string }
 interface Tarif { actCode: string; label: string; tarifCnas: number; lettreCle: string }
 interface DrugEntry { dci: string; category: string; route: string; notes: string }
+interface DrugInteraction { a: string; b: string; severity: 'info' | 'warning' | 'danger'; note: string }
+export interface InteractionWarning { drugA: string; drugB: string; severity: 'info' | 'warning' | 'danger'; note: string }
 
 @Injectable()
 export class RulesService implements OnModuleInit {
@@ -36,6 +38,7 @@ export class RulesService implements OnModuleInit {
   private triageRules: TriageRule[] = [];
   private tarification: Tarif[] = [];
   private drugs: DrugEntry[] = [];
+  private interactions: DrugInteraction[] = [];
   private lawTexts: { source: string; text: string }[] = [];
 
   private seeded = false;
@@ -58,13 +61,15 @@ export class RulesService implements OnModuleInit {
       this.triageRules = this.loadJson('triage-rules.json', []);
       this.tarification = this.loadJson('tarification-cnas.json', []);
       this.drugs = this.loadJson('who-essential-meds.json', []);
+      this.interactions = this.loadJson('drug-interactions.json', []);
       this.lawTexts = this.loadLaws();
 
       this.seeded = true;
       this.logger.log(
         `Layer 2 seeded: ${this.cim10.length} CIM-10, ${this.labNormals.length} lab normals, ` +
         `${this.vaccination.length} vaccines, ${this.triageRules.length} triage rules, ` +
-        `${this.tarification.length} tarifs, ${this.drugs.length} drugs, ${this.lawTexts.length} law texts`,
+        `${this.tarification.length} tarifs, ${this.drugs.length} drugs, ` +
+        `${this.interactions.length} interactions, ${this.lawTexts.length} law texts`,
       );
     } catch (err) {
       this.logger.warn(`Seed data incomplete: ${err}. Layer 2 will have limited data.`);
@@ -73,6 +78,35 @@ export class RulesService implements OnModuleInit {
   }
 
   // ── Lookup methods ─────────────────────────────────────────────────────
+
+  /**
+   * Check a list of medication strings against the interaction table.
+   * Matching is loose: each pattern matches if it appears as a substring
+   * (case-insensitive) of the medication line. Catches "Aspirine 100mg" against "aspirine".
+   */
+  checkInteractions(medications: string[]): InteractionWarning[] {
+    if (!medications || medications.length < 2) return [];
+    const norm = medications.map((m) => (m || '').toLowerCase()).filter(Boolean);
+
+    const matched = (pattern: string, line: string): boolean => line.includes(pattern.toLowerCase());
+
+    const warnings: InteractionWarning[] = [];
+    for (const rule of this.interactions) {
+      const aIdx = norm.findIndex((m) => matched(rule.a, m));
+      if (aIdx === -1) continue;
+      // 'b' must be in a different med line
+      const bIdx = norm.findIndex((m, i) => i !== aIdx && matched(rule.b, m));
+      if (bIdx === -1) continue;
+
+      warnings.push({
+        drugA: medications[aIdx],
+        drugB: medications[bIdx],
+        severity: rule.severity,
+        note: rule.note,
+      });
+    }
+    return warnings;
+  }
 
   /** CIM-10: search by code prefix or label keyword */
   lookupCim10(query: string): string {

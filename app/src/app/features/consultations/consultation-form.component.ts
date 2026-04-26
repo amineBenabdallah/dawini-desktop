@@ -10,6 +10,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { AmiraWhisperComponent } from '../amira/amira-whisper.component';
 import { Role } from '@shared/index';
 
 interface PatientOption { id: string; firstName: string; lastName: string }
@@ -18,7 +19,7 @@ interface DocteurOption { id: string; firstName: string | null; lastName: string
 @Component({
   selector: 'app-consultation-form',
   standalone: true,
-  imports: [FormsModule, LoadingSpinnerComponent],
+  imports: [FormsModule, LoadingSpinnerComponent, AmiraWhisperComponent],
   templateUrl: './consultation-form.component.html',
 })
 export class ConsultationFormComponent implements OnInit {

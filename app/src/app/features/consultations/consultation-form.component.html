@@ -59,6 +59,7 @@
           <textarea class="cm-input w-100" rows="2" maxlength="500"
                     [(ngModel)]="form.motif" placeholder="Motif de la consultation..."></textarea>
           <div class="cm-char-count">{{ form.motif.length }}/500</div>
+          <app-amira-whisper [value]="form.motif" check="motif" [patientId]="form.patientId" />
         </div>
       </div>
 
@@ -103,6 +104,7 @@
           @if (!isValidBP()) {
             <div class="invalid-feedback d-block">Format attendu : 120/80</div>
           }
+          <app-amira-whisper [value]="form.tensionArterielle" check="vitals-ta" />
         </div>
 
         <div class="cm-form-group">
@@ -121,6 +123,7 @@
           @if (!isValidTemperature()) {
             <div class="invalid-feedback d-block">Valeur entre 30 et 45 °C</div>
           }
+          <app-amira-whisper [value]="form.temperature" check="vitals-temp" />
         </div>
       </div>
     </div>

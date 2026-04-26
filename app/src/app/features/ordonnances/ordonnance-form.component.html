@@ -61,6 +61,7 @@
           <div class="col-md-6">
             <label class="cm-form-label">Médicament <span class="required">*</span></label>
             <input type="text" class="cm-input w-100" [(ngModel)]="ligne.medicament"
+                   (ngModelChange)="onMedicamentChange()"
                    placeholder="Nom du médicament" maxlength="200" />
           </div>
           <div class="col-md-6">

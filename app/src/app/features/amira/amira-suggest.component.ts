@@ -1,4 +1,5 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { AmiraNotifyService } from '../../core/services/amira-notify.service';
 
 /**
  * Suggest — floating action card, bottom-right above FAB.
@@ -160,33 +161,14 @@ export interface AmiraSuggestion {
   `],
 })
 export class AmiraSuggestComponent {
-  cards = signal<AmiraSuggestion[]>([]);
-  private counter = 0;
-  private actionCallback?: (cardId: number, actionKey: string) => void;
-
-  /**
-   * Show a suggestion card. Auto-dismisses after 15s.
-   * Max 2 visible at once.
-   */
-  show(suggestion: Omit<AmiraSuggestion, 'id'>, onAction?: (cardId: number, actionKey: string) => void) {
-    const id = ++this.counter;
-    this.actionCallback = onAction;
-
-    this.cards.update((current) => {
-      const next = [...current, { ...suggestion, id }];
-      return next.slice(-2); // Max 2 visible
-    });
-
-    // Auto-dismiss after 15s
-    setTimeout(() => this.dismiss(id), 15000);
-  }
+  private readonly notify = inject(AmiraNotifyService);
+  readonly cards = this.notify.cards;
 
   dismiss(id: number) {
-    this.cards.update((current) => current.filter((c) => c.id !== id));
+    this.notify.dismiss(id);
   }
 
-  onAction(cardId: number, actionKey: string) {
-    this.actionCallback?.(cardId, actionKey);
-    this.dismiss(cardId);
+  onAction(cardId: number, _actionKey: string) {
+    this.notify.dismiss(cardId);
   }
 }

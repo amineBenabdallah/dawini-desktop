@@ -6,7 +6,15 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { AmiraNotifyService } from '../../core/services/amira-notify.service';
 import { ConsultationStatus } from '@shared/index';
+
+interface InteractionWarning {
+  drugA: string;
+  drugB: string;
+  severity: 'info' | 'warning' | 'danger';
+  note: string;
+}
 
 interface ConsultationOption {
   id: string;
@@ -38,6 +46,10 @@ export class OrdonnanceFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
+  private readonly notify = inject(AmiraNotifyService);
+
+  private interactionTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastWarningKeys = new Set<string>();
 
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -126,6 +138,44 @@ export class OrdonnanceFormComponent implements OnInit {
   removeLigne(index: number) {
     if (this.lignes.length <= 1) return;
     this.lignes = this.lignes.filter((_, i) => i !== index);
+    this.scheduleInteractionCheck();
+  }
+
+  /**
+   * Called from the medication name input on change. Debounces and queries
+   * the backend for any drug-drug interactions across all current lines.
+   * Shows new warnings via Amira's notify service; skips already-shown ones.
+   */
+  onMedicamentChange() {
+    this.scheduleInteractionCheck();
+  }
+
+  private scheduleInteractionCheck() {
+    if (this.interactionTimer) clearTimeout(this.interactionTimer);
+    this.interactionTimer = setTimeout(() => this.runInteractionCheck(), 700);
+  }
+
+  private runInteractionCheck() {
+    const meds = this.lignes
+      .map((l) => l.medicament.trim())
+      .filter((m) => m.length >= 3);
+    if (meds.length < 2) return;
+
+    this.api.post<{ warnings: InteractionWarning[] }>('ai/check-interactions', { medications: meds }).subscribe({
+      next: (res) => {
+        for (const w of res?.warnings ?? []) {
+          const key = [w.drugA.toLowerCase(), w.drugB.toLowerCase()].sort().join('::');
+          if (this.lastWarningKeys.has(key)) continue;
+          this.lastWarningKeys.add(key);
+          this.notify.show({
+            title: 'Interaction médicamenteuse',
+            body: `<strong>${w.drugA}</strong> + <strong>${w.drugB}</strong>: ${w.note}`,
+            severity: w.severity,
+          });
+        }
+      },
+      error: () => {},
+    });
   }
 
   save() {
