@@ -7,14 +7,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { AmiraNotifyService } from '../../core/services/amira-notify.service';
+import { AmiraService } from '../../core/services/amira.service';
 import { ConsultationStatus } from '@shared/index';
-
-interface InteractionWarning {
-  drugA: string;
-  drugB: string;
-  severity: 'info' | 'warning' | 'danger';
-  note: string;
-}
 
 interface ConsultationOption {
   id: string;
@@ -47,9 +41,10 @@ export class OrdonnanceFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
   private readonly notify = inject(AmiraNotifyService);
+  private readonly amira = inject(AmiraService);
 
   private interactionTimer: ReturnType<typeof setTimeout> | null = null;
-  private lastWarningKeys = new Set<string>();
+  private lastQueryKey = '';
 
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -161,18 +156,21 @@ export class OrdonnanceFormComponent implements OnInit {
       .filter((m) => m.length >= 3);
     if (meds.length < 2) return;
 
-    this.api.post<{ warnings: InteractionWarning[] }>('ai/check-interactions', { medications: meds }).subscribe({
-      next: (res) => {
-        for (const w of res?.warnings ?? []) {
-          const key = [w.drugA.toLowerCase(), w.drugB.toLowerCase()].sort().join('::');
-          if (this.lastWarningKeys.has(key)) continue;
-          this.lastWarningKeys.add(key);
-          this.notify.show({
-            title: 'Interaction médicamenteuse',
-            body: `<strong>${w.drugA}</strong> + <strong>${w.drugB}</strong>: ${w.note}`,
-            severity: w.severity,
-          });
-        }
+    const key = meds.map((m) => m.toLowerCase()).sort().join('|');
+    if (key === this.lastQueryKey) return;
+    this.lastQueryKey = key;
+
+    const list = meds.map((m, i) => `${i + 1}. ${m}`).join('\n');
+    const prompt = `Médicaments prescrits:\n${list}\n\nY a-t-il des interactions médicamenteuses connues entre ces médicaments d'après les références fournies ? Si oui, lesquelles et pourquoi ? Réponds en 1 à 3 lignes.`;
+
+    this.amira.query('ordonnance', prompt, {}).subscribe({
+      next: (res: any) => {
+        if (!res?.text || !res.fromReferences) return;
+        this.notify.show({
+          title: 'Amira — vérification interactions',
+          body: res.text,
+          severity: 'warning',
+        });
       },
       error: () => {},
     });

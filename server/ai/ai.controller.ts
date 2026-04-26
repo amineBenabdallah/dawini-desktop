@@ -17,7 +17,6 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AiService, AmiraNotAvailableError, AmiraValidationError } from './ai.service';
 import { IndexerService } from './indexer.service';
 import { RagService } from './rag.service';
-import { RulesService } from './rules.service';
 
 /**
  * AiController — REST endpoints for Dr. Amira.
@@ -37,7 +36,6 @@ export class AiController {
     private readonly ai: AiService,
     private readonly indexer: IndexerService,
     private readonly rag: RagService,
-    private readonly rules: RulesService,
   ) {}
 
   /**
@@ -117,17 +115,6 @@ export class AiController {
   @Get('status')
   getStatus() {
     return this.ai.getStatus();
-  }
-
-  /**
-   * Drug-drug interaction check — synchronous, local rules-based.
-   * Returns warnings for any known interaction between provided medications.
-   */
-  @Post('check-interactions')
-  @HttpCode(HttpStatus.OK)
-  checkInteractions(@Body() body: { medications: string[] }) {
-    const meds = Array.isArray(body?.medications) ? body.medications : [];
-    return { warnings: this.rules.checkInteractions(meds) };
   }
 
   /** Index a document (PDF/DOCX/TXT). */

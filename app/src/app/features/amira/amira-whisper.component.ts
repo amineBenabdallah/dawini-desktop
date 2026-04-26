@@ -87,47 +87,20 @@ export class AmiraWhisperComponent implements OnChanges {
   private analyze() {
     if (!this.value?.trim()) return;
 
-    if (this.check.startsWith('vitals')) {
-      this.analyzeVitals();
-    } else if (this.check === 'motif') {
-      this.analyzeMotif();
-    }
-  }
-
-  private analyzeVitals() {
-    // Quick local check first (no LLM needed)
+    let prompt = '';
     if (this.check === 'vitals-ta') {
-      const parts = this.value.split('/').map(Number);
-      if (parts.length === 2) {
-        const [sys, dia] = parts;
-        if (sys >= 180 || dia >= 110) {
-          this.showAlert('HTA grade 3 — urgence hypertensive', 'danger');
-        } else if (sys >= 160 || dia >= 100) {
-          this.showAlert('HTA grade 2 — considérer ajustement thérapeutique', 'warning');
-        } else if (sys >= 140 || dia >= 90) {
-          this.showAlert('HTA grade 1', 'warning');
-        } else if (sys < 90 || dia < 60) {
-          this.showAlert('Hypotension', 'danger');
-        } else {
-          this.text.set('');
-        }
-      }
+      prompt = `Tension artérielle: ${this.value} mmHg. Évaluation en une phrase.`;
     } else if (this.check === 'vitals-temp') {
-      const temp = parseFloat(this.value);
-      if (temp >= 40) this.showAlert(`Hyperthermie sévère (${temp}°C)`, 'danger');
-      else if (temp >= 38.5) this.showAlert(`Fièvre (${temp}°C)`, 'warning');
-      else if (temp < 35) this.showAlert(`Hypothermie (${temp}°C)`, 'danger');
-      else this.text.set('');
+      prompt = `Température: ${this.value}°C. Évaluation en une phrase.`;
+    } else if (this.check === 'motif') {
+      prompt = `Motif: "${this.value}". Suggère en une phrase les diagnostics à évoquer.`;
+    } else {
+      return;
     }
-  }
 
-  private analyzeMotif() {
-    // Ask Amira for a quick differential suggestion
-    this.amira.query('consultation', `Motif: "${this.value}". Suggère en une phrase les diagnostics à évoquer.`, {
-      patientId: this.patientId,
-    }).subscribe({
+    this.amira.query('consultation', prompt, { patientId: this.patientId }).subscribe({
       next: (res: any) => {
-        if (res.text && res.fromReferences) {
+        if (res?.text && res.fromReferences) {
           this.showAlert(res.text, 'info');
         }
       },
