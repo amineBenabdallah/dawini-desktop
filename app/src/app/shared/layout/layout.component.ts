@@ -3,6 +3,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { ToastComponent } from '../components/toast/toast.component';
 import { UpdateBannerComponent } from '../components/update-banner/update-banner.component';
 import { LicenseBannerComponent } from '../components/license-banner/license-banner.component';
+import { AmiraSetupBannerComponent } from '../components/amira-setup-banner/amira-setup-banner.component';
 import { AmiraFabComponent } from '../../features/amira/amira-fab.component';
 import { AmiraPanelComponent } from '../../features/amira/amira-panel.component';
 import { AmiraSuggestComponent } from '../../features/amira/amira-suggest.component';
@@ -19,6 +20,7 @@ import { PlatformService } from '../../core/services/platform.service';
     ToastComponent,
     UpdateBannerComponent,
     LicenseBannerComponent,
+    AmiraSetupBannerComponent,
     AmiraFabComponent,
     AmiraPanelComponent,
     AmiraSuggestComponent,
@@ -26,6 +28,7 @@ import { PlatformService } from '../../core/services/platform.service';
   template: `
     <app-update-banner />
     <app-license-banner />
+    <app-amira-setup-banner />
 
     <div class="app-layout">
       <!-- Sidebar -->

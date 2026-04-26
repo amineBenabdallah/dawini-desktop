@@ -115,6 +115,19 @@ export class PlatformService {
     return this.isDesktop ? this.api.getVersion() : '1.0.0-dev';
   }
 
+  // ── Amira (Ollama) setup ─────────────────────────────────────────────
+  async amiraSetupStatus(): Promise<{ phase: string; percent: number; message: string; error?: string }> {
+    return this.isDesktop ? this.api.amiraSetupStatus() : { phase: 'idle', percent: 0, message: '' };
+  }
+
+  amiraSetupRun(): void {
+    if (this.isDesktop) this.api.amiraSetupRun();
+  }
+
+  onAmiraSetupProgress(callback: (progress: { phase: string; percent: number; message: string; error?: string }) => void): void {
+    if (this.isDesktop) this.api.onAmiraSetupProgress(callback);
+  }
+
   // ── Audio feedback ───────────────────────────────────────────────────
   playClick(): void {
     if (!this.isDesktop) return;

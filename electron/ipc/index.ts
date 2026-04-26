@@ -2,6 +2,7 @@ import { ipcMain, dialog, BrowserWindow, app } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { registerLicenseHandlers } from './license';
+import { runSetup, getProgress } from '../ollama-setup';
 
 /**
  * Register all IPC handlers for the renderer process.
@@ -12,6 +13,17 @@ export function registerIpcHandlers(): void {
   registerFileHandlers();
   registerAppInfoHandlers();
   registerLicenseHandlers();
+  registerAmiraSetupHandlers();
+}
+
+// ── Amira (Ollama) setup ─────────────────────────────────────────────────────
+function registerAmiraSetupHandlers(): void {
+  ipcMain.handle('amira-setup-status', () => getProgress());
+  ipcMain.handle('amira-setup-run', () => {
+    const win = BrowserWindow.getAllWindows()[0] || null;
+    runSetup(win);
+    return true;
+  });
 }
 
 // ── Print ────────────────────────────────────────────────────────────────────

@@ -66,4 +66,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ── App info ─────────────────────────────────────────────────────────────
   getVersion: () => ipcRenderer.invoke('get-version'),
   getDataPath: () => ipcRenderer.invoke('get-data-path'),
+
+  // ── Amira (Ollama) setup ─────────────────────────────────────────────────
+  amiraSetupStatus: () => ipcRenderer.invoke('amira-setup-status'),
+  amiraSetupRun: () => ipcRenderer.invoke('amira-setup-run'),
+  onAmiraSetupProgress: (callback: (progress: any) => void) => {
+    ipcRenderer.on('amira-setup-progress', (_event, progress) => callback(progress));
+  },
 });

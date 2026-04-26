@@ -34,9 +34,8 @@ import { CabinetService } from './common/services/cabinet.service';
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 200 }]),
     EventEmitterModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'sqljs',
-      location: process.env.DB_PATH || 'dawini.db',
-      autoSave: true,
+      type: 'better-sqlite3',
+      database: process.env.DB_PATH || 'dawini.db',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true, // safe for desktop — single user, single DB
       logging: process.env.NODE_ENV === 'development',

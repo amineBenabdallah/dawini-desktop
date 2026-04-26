@@ -14,6 +14,7 @@ import { initAutoUpdater } from './updater';
 import { registerIpcHandlers } from './ipc/index';
 import { startServer, stopServer } from './server-bridge';
 import { getLanIp } from './utils/network';
+import { runSetup } from './ollama-setup';
 
 // Force the userData directory to be consistent regardless of how the app is
 // launched (packaged binary vs `npx electron`). Without this, running in dev
@@ -87,7 +88,9 @@ function createMainWindow(): BrowserWindow {
   win.once('ready-to-show', () => {
     win.show();
     win.focus();
-    win.webContents.openDevTools({ mode: 'detach' });
+    if (!app.isPackaged) {
+      win.webContents.openDevTools({ mode: 'detach' });
+    }
   });
 
   // Persist window bounds
@@ -206,15 +209,23 @@ app.on('ready', async () => {
   try {
     await startServer();
   } catch (err) {
+    const e = err as Error;
     dialog.showErrorBox(
       'Erreur de démarrage',
-      `Le serveur interne n'a pas pu démarrer.\n\n${(err as Error).message}`,
+      `Le serveur interne n'a pas pu démarrer.\n\n${e.message}\n\n${e.stack || ''}`,
     );
     app.quit();
     return;
   }
 
-  mainWindow = createMainWindow();
+  try {
+    mainWindow = createMainWindow();
+  } catch (err) {
+    const e = err as Error;
+    dialog.showErrorBox('Erreur fenêtre', `${e.message}\n\n${e.stack || ''}`);
+    app.quit();
+    return;
+  }
 
   createTray(mainWindow, () => {
     isQuitting = true;
@@ -223,6 +234,13 @@ app.on('ready', async () => {
 
   registerIpcHandlers();
   initAutoUpdater(mainWindow);
+
+  // Kick off Amira (Ollama + Mistral) setup in the background.
+  // Detects existing install, downloads Ollama if missing, pulls model if missing.
+  // Progress is streamed to the renderer via 'amira-setup-progress'.
+  mainWindow.webContents.once('did-finish-load', () => {
+    runSetup(mainWindow);
+  });
 });
 
 app.on('before-quit', () => {
