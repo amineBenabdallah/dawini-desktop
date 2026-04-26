@@ -236,11 +236,18 @@ app.on('ready', async () => {
   initAutoUpdater(mainWindow);
 
   // Kick off Amira (Ollama + Mistral) setup in the background.
-  // Detects existing install, downloads Ollama if missing, pulls model if missing.
-  // Progress is streamed to the renderer via 'amira-setup-progress'.
-  mainWindow.webContents.once('did-finish-load', () => {
-    runSetup(mainWindow);
-  });
+  // We trigger via three independent paths to avoid race conditions:
+  //   1. did-finish-load if the page is still loading
+  //   2. immediately if loading is already complete
+  //   3. a 4 s safety timer as last-resort fallback
+  // runSetup is idempotent (setupInProgress flag), so duplicate calls are safe.
+  const triggerSetup = () => runSetup(mainWindow);
+  if (mainWindow.webContents.isLoading()) {
+    mainWindow.webContents.once('did-finish-load', triggerSetup);
+  } else {
+    triggerSetup();
+  }
+  setTimeout(triggerSetup, 4000);
 });
 
 app.on('before-quit', () => {

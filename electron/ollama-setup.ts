@@ -75,16 +75,25 @@ async function modelInstalled(name: string): Promise<boolean> {
 function downloadFile(url: string, dest: string, onProgress: (pct: number) => void): Promise<void> {
   return new Promise((resolve, reject) => {
     const doRequest = (currentUrl: string, redirectsLeft: number) => {
-      https.get(currentUrl, (res) => {
-        if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307) {
+      const lib = currentUrl.startsWith('http://') ? require('http') : https;
+      const req = lib.get(currentUrl, {
+        headers: {
+          'User-Agent': 'Dawini-Desktop/1.0 (+https://github.com/amineBenabdallah/dawini-desktop)',
+          'Accept': '*/*',
+        },
+      }, (res: any) => {
+        if ([301, 302, 303, 307, 308].includes(res.statusCode)) {
           if (redirectsLeft <= 0) return reject(new Error('Too many redirects'));
           const next = res.headers.location;
-          if (!next) return reject(new Error('Redirect with no location'));
+          if (!next) return reject(new Error('Redirect with no Location header'));
           res.resume();
-          return doRequest(next, redirectsLeft - 1);
+          // Resolve relative redirects against current URL
+          const resolved = next.startsWith('http') ? next : new URL(next, currentUrl).toString();
+          return doRequest(resolved, redirectsLeft - 1);
         }
         if (res.statusCode !== 200) {
-          return reject(new Error(`HTTP ${res.statusCode}`));
+          res.resume();
+          return reject(new Error(`HTTP ${res.statusCode} fetching ${currentUrl}`));
         }
         const total = parseInt(res.headers['content-length'] || '0', 10);
         let received = 0;
@@ -95,10 +104,12 @@ function downloadFile(url: string, dest: string, onProgress: (pct: number) => vo
         });
         res.pipe(file);
         file.on('finish', () => file.close(() => resolve()));
-        file.on('error', (err) => { fs.unlink(dest, () => reject(err)); });
-      }).on('error', reject);
+        file.on('error', (err: Error) => { fs.unlink(dest, () => reject(err)); });
+      });
+      req.on('error', reject);
+      req.setTimeout(120_000, () => { req.destroy(new Error('Download stalled (120s no data)')); });
     };
-    doRequest(url, 5);
+    doRequest(url, 8);
   });
 }
 
