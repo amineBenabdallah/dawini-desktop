@@ -106,6 +106,11 @@ export class AmiraService {
     return this.http.get<AmiraStatus>(`${this.api}/ai/status`);
   }
 
+  /** Re-check Ollama without restarting the app. */
+  reload(): Observable<AmiraStatus> {
+    return this.http.post<AmiraStatus>(`${this.api}/ai/reload`, {});
+  }
+
   /** Index a document. */
   indexDocument(filePath: string, category?: string): Observable<{ chunksIndexed: number; fileName: string }> {
     return this.http.post<{ chunksIndexed: number; fileName: string }>(`${this.api}/ai/index`, {

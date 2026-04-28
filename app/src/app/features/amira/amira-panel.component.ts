@@ -52,7 +52,12 @@ interface ChatMessage {
               <div class="ap-empty-avatar">A</div>
               <p>Bonjour ! Pose-moi une question ou utilise les boutons rapides ci-dessous.</p>
               @if (!amiraReady()) {
-                <p style="font-size:12px;color:#94a3b8;margin-top:8px">Aucun mod&egrave;le charg&eacute; &mdash; mes r&eacute;ponses seront limit&eacute;es.</p>
+                <div class="ap-reload-block">
+                  <p>Mod&egrave;le IA non charg&eacute;.</p>
+                  <button class="ap-reload-btn" (click)="retryModel()" [disabled]="isRetrying()">
+                    {{ isRetrying() ? 'V&eacute;rification...' : 'R&eacute;essayer' }}
+                  </button>
+                </div>
               }
             </div>
           }
@@ -168,6 +173,28 @@ interface ChatMessage {
       padding: 40px 20px;
       color: #94a3b8;
       font-size: 13px;
+    }
+
+    .ap-reload-block {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      p { font-size: 12px; color: #94a3b8; margin: 0; }
+    }
+    .ap-reload-btn {
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1.5px solid #2563eb;
+      background: white;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+      &:hover:not(:disabled) { background: #2563eb; color: white; }
+      &:disabled { opacity: 0.5; cursor: default; }
     }
     .ap-empty-avatar {
       width: 48px; height: 48px; border-radius: 50%;
@@ -299,6 +326,7 @@ export class AmiraPanelComponent implements AfterViewChecked {
   messages = signal<ChatMessage[]>([]);
   isStreaming = signal(false);
   amiraReady = signal(false);
+  isRetrying = signal(false);
   inputText = '';
   private shouldScroll = false;
   private statusChecked = false;
@@ -316,6 +344,18 @@ export class AmiraPanelComponent implements AfterViewChecked {
         error: () => this.amiraReady.set(false),
       });
     }
+  }
+
+  retryModel() {
+    if (this.isRetrying()) return;
+    this.isRetrying.set(true);
+    this.amira.reload().subscribe({
+      next: (s) => {
+        this.amiraReady.set(s.loaded);
+        this.isRetrying.set(false);
+      },
+      error: () => this.isRetrying.set(false),
+    });
   }
 
   send() {

@@ -16,6 +16,7 @@ import { Response } from 'express';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AiService, AmiraNotAvailableError, AmiraValidationError } from './ai.service';
 import { IndexerService } from './indexer.service';
+import { LlmService } from './llm.service';
 import { RagService } from './rag.service';
 
 /**
@@ -35,6 +36,7 @@ export class AiController {
   constructor(
     private readonly ai: AiService,
     private readonly indexer: IndexerService,
+    private readonly llm: LlmService,
     private readonly rag: RagService,
   ) {}
 
@@ -114,6 +116,14 @@ export class AiController {
   /** Amira status — is the model loaded? */
   @Get('status')
   getStatus() {
+    return this.ai.getStatus();
+  }
+
+  /** Re-check Ollama — useful when Ollama was started after Dawini launched. */
+  @Post('reload')
+  @HttpCode(HttpStatus.OK)
+  async reloadModel() {
+    await this.llm.checkOllama();
     return this.ai.getStatus();
   }
 
